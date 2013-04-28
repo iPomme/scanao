@@ -1,4 +1,4 @@
-package io.nao.scanao
+package io.nao.scanao.msg
 
 /**
  * Object used to synchronized the Nao calls
@@ -13,8 +13,6 @@ package audioDevice {
 object DisableEnergyComputation
 
 object EnableEnergyComputation
-
-object Done
 
 object FrontMicEnergy
 
@@ -76,8 +74,8 @@ case class DataList(filter: String)
  *********************************************/
 package motion {
 
-import io.nao.scanao.Space.Space
-import io.nao.scanao.Hand.Hand
+import io.nao.scanao.msg.Hand.Hand
+import io.nao.scanao.msg.Space.Space
 
 case class Stiffness(joint: H25)
 

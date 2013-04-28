@@ -1,0 +1,99 @@
+#!/bin/bash
+
+if [ "x$JAVA_MIN_MEM" = "x" ]; then
+    JAVA_MIN_MEM=1000M
+    export JAVA_MIN_MEM
+fi
+
+if [ "x$JAVA_MAX_MEM" = "x" ]; then
+    JAVA_MAX_MEM=1536M
+    export JAVA_MAX_MEM
+fi
+
+locateJava() {
+  if [ "x$JAVA" = "x" ]; then
+        if [ "x$JAVA_HOME" != "x" ]; then
+            if [ ! -d "$JAVA_HOME" ]; then
+                die "JAVA_HOME is not valid: $JAVA_HOME"
+            fi
+            JAVA="$JAVA_HOME/bin/java"
+        else
+            warn "JAVA_HOME not set; results may vary"
+            JAVA=`type java`
+            JAVA=`expr "$JAVA" : '.*is \(.*\)$'`
+            if [ "x$JAVA" = "x" ]; then
+                die "java command not found"
+            fi
+        fi
+  fi
+}
+
+locateHome() {
+    if [ "x$SCANAO_HOME" != "x" ]; then
+        warn "Ignoring predefined value for SCANAO_HOME"
+    fi
+
+    # In POSIX shells, CDPATH may cause cd to write to stdout
+    (unset CDPATH) >/dev/null 2>&1 && unset CDPATH
+
+    SCANAO_HOME=$(cd "$(cd "$(dirname "$0")"; pwd -P)"/..; pwd)
+
+    if [ ! -d "$SCANAO_HOME" ]; then
+        die "SCANAO_HOME is not valid: $SCANAO_HOME"
+    fi
+
+}
+
+warn() {
+    echo "${PROGNAME}: $*"
+}
+
+setupDebugOptions() {
+  # Set Debug options if enabled
+  if [ "x$NAO_DEBUG" != "x" ]; then
+      # Use the defaults if JAVA_DEBUG_OPTS was not set
+      if [ "x$JAVA_DEBUG_OPTS" = "x" ]; then
+          JAVA_DEBUG_OPTS="$DEFAULT_JAVA_DEBUG_OPTS"
+      fi
+
+      JAVA_OPTS="$JAVA_DEBUG_OPTS $JAVA_OPTS"
+      warn "Enabling Java debug options: $JAVA_DEBUG_OPTS"
+  fi
+}
+
+setupDefaults() {
+  DEFAULT_JAVA_DEBUG_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+  DEFAULT_JAVA_OPTS="-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:MaxPermSize=256M -Xss1M -XX:+UseParallelGC"
+  if [ "x$JAVA_OPTS" = "x" ]; then
+        JAVA_OPTS="$DEFAULT_JAVA_OPTS"
+  fi
+  export JAVA_OPTS
+}
+
+init() {
+
+    # Locate the Java VM to execute
+    locateJava
+
+    # Locate the scanao home directory
+    locateHome
+
+    # Setup default options
+    setupDefaults
+
+    # Install debug options
+    setupDebugOptions
+
+}
+
+run() {
+  echo "Using $JAVA"
+  exec "$JAVA" $JAVA_OPTS -Djava.library.path=$SCANAO_HOME/lib -Djava.awt.headless=true -cp "$SCANAO_HOME/config:$SCANAO_HOME/lib/*" -Dakka.home="$SCANAO_HOME" akka.kernel.Main io.nao.scanao.srv.NaoServer
+}
+
+main() {
+    init
+    run "$@"
+}
+
+main "$@"

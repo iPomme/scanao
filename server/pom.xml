@@ -18,7 +18,6 @@
     <inceptionYear>2013</inceptionYear>
 
 
-
     <properties>
         <nao.ip>192.168.1.72</nao.ip>
         <final.name>uber-${project.artifactId}-${project.version}</final.name>
@@ -31,8 +30,41 @@
             <version>${pom.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.aldebaran</groupId>
+            <artifactId>proxy</artifactId>
+            <version>1.12.3</version>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-remote_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-kernel_2.10</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j_2.10</artifactId>
+        </dependency>
+
+        <!-- Log implementation -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.0.11</version>
         </dependency>
 
         <!-- Test -->
@@ -66,7 +98,23 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
             </plugin>
-
+            <!-- create the assembly to deploy on the robot -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptor>src/assembly/bin.xml</descriptor>
+                    <finalName>scanao-server-${pom.version}</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
