@@ -18,26 +18,27 @@
 package io.nao.scanao.srv
 
 import io.nao.scanao.msg._
-import com.aldebaran.proxy.{ALTextToSpeechProxy, ALProxy}
+import com.aldebaran.proxy.{ALTextToSpeechProxy}
 import akka.actor.{ActorLogging, Actor}
 
-class SNTextToSpeechActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALTextToSpeechProxy(ip, port) with Actor with ActorLogging {
+//class SNTextToSpeechActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALTextToSpeechProxy(ip, port) with Actor with ActorLogging {
+class SNTextToSpeechActor(ip: String = "127.0.0.1", port: Int = 9559) extends Actor with ActorLogging {
 
   log.info("Creating instance of SNTextToSpeechActor")
 
   def receive = {
-    case txt.AvailableLanguages => {
-      val languages = getAvailableLanguages.toList
-      sender ! languages
-    }
-    case txt: txt.Say => {
-      say(txt.string)
-      sender ! Done
-    }
-    case txt: txt.SayToFileAndPlay => {
-      val taskId = sayToFileAndPlay(txt.string)
-      sender ! taskId
-    }
+//    case txt.AvailableLanguages => {
+//      val languages = getAvailableLanguages.toList
+//      sender ! languages
+//    }
+//    case txt: txt.Say => {
+//      say(txt.string)
+//      sender ! Done
+//    }
+//    case txt: txt.SayToFileAndPlay => {
+//      val taskId = sayToFileAndPlay(txt.string)
+//      sender ! taskId
+//    }
 
     case x@_ => {
       log.error("Unknown Message " + x)

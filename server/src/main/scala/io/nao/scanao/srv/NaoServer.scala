@@ -24,8 +24,8 @@ import com.typesafe.config.ConfigFactory
 class NaoSupervisor extends Actor with ActorLogging {
 
   val text = context.actorOf(Props(new SNTextToSpeechActor()), name = "text")
-  val memory = context.actorOf(Props(new SNMemoryActor()), name = "memory")
-  val audio = context.actorOf(Props(new SNAudioDeviceActor()), name = "audio")
+//  val memory = context.actorOf(Props(new SNMemoryActor()), name = "memory")
+//  val audio = context.actorOf(Props(new SNAudioDeviceActor()), name = "audio")
 //  val behavior = context.actorOf(Props(new SNBehaviorManagerActor()), name = "behavior")
 //  val motion = context.actorOf(Props(new SNMotionActor()), name = "motion")
 //  val pose = context.actorOf(Props(new SNRobotPoseActor()), name = "pose")

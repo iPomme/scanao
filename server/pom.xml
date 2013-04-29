@@ -27,12 +27,12 @@
         <dependency>
             <groupId>io.nao</groupId>
             <artifactId>messages</artifactId>
-            <version>${pom.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aldebaran</groupId>
             <artifactId>proxy</artifactId>
-            <version>1.12.3</version>
+            <version>1.14.2-nic</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -104,7 +104,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/assembly/bin.xml</descriptor>
-                    <finalName>scanao-server-${pom.version}</finalName>
+                    <finalName>scanao-server-${project.version}</finalName>
                 </configuration>
                 <executions>
                     <execution>

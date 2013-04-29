@@ -56,7 +56,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>src/config/application.conf</directory>
+            <directory>src/config</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
                 <include>*</include>
