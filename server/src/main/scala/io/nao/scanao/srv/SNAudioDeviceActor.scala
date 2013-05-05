@@ -17,11 +17,11 @@
 
 package io.nao.scanao.srv
 
-import com.aldebaran.proxy.{ALAudioDeviceProxy, ALProxy}
+import com.aldebaran.proxy.ALProxy
 import io.nao.scanao.msg.audioDevice._
 import akka.actor.{ActorLogging, Actor}
 
-class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALAudioDeviceProxy(ip, port) with Actor with ActorLogging {
+class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALAudioDevice", ip, port) with SNAudioDevice with Actor with ActorLogging {
 
   log.info("Creating instance of SNAudioDeviceActor")
 
@@ -46,8 +46,4 @@ class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALA
     }
   }
 }
-
-//object SNAudioDeviceActor {
-//  System.loadLibrary("jnaoqi")
-//}
 

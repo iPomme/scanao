@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.aldebaran</groupId>
             <artifactId>proxy</artifactId>
-            <version>1.12.3</version>
+            <version>1.14.2-old-so</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

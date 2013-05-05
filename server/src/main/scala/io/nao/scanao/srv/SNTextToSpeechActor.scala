@@ -18,10 +18,10 @@
 package io.nao.scanao.srv
 
 import io.nao.scanao.msg._
-import com.aldebaran.proxy.{ALTextToSpeechProxy, ALProxy}
+import com.aldebaran.proxy.ALProxy
 import akka.actor.{ActorLogging, Actor}
 
-class SNTextToSpeechActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALTextToSpeechProxy(ip, port) with Actor with ActorLogging {
+class SNTextToSpeechActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALTextToSpeech", ip, port) with SNTextToSpeech with Actor with ActorLogging{
 
   log.info("Creating instance of SNTextToSpeechActor")
 

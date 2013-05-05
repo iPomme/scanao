@@ -17,18 +17,18 @@
 
 package io.nao.scanao.srv
 
-import com.aldebaran.proxy.{ALMemoryProxy, ALProxy}
+import com.aldebaran.proxy.ALProxy
 import io.nao.scanao.msg.Done
 import io.nao.scanao.msg.memory._
 import akka.actor.{ActorLogging, Actor}
 
-class SNMemoryActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALMemoryProxy(ip, port) with Actor with ActorLogging {
+class SNMemoryActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALMemory", ip, port) with SNMemory with Actor with ActorLogging {
 
   log.info("Creating instance of SNMemoryActor")
 
   def receive = {
     case insert: Insert => {
-      insertData(insert.key, insert.value)
+      insertData(insert.key)(insert.value)
       sender ! Done
     }
     case data: DataInMemoryAsInt => {
