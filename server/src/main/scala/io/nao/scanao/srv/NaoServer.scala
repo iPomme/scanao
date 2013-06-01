@@ -17,19 +17,29 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor, Props, ActorSystem}
+import akka.actor._
 import akka.kernel.Bootable
 import com.typesafe.config.ConfigFactory
+
 
 class NaoSupervisor extends Actor with ActorLogging {
 
   val text = context.actorOf(Props(new SNTextToSpeechActor()), name = "text")
   val memory = context.actorOf(Props(new SNMemoryActor()), name = "memory")
   val audio = context.actorOf(Props(new SNAudioDeviceActor()), name = "audio")
-//  val behavior = context.actorOf(Props(new SNBehaviorManagerActor()), name = "behavior")
-//  val motion = context.actorOf(Props(new SNMotionActor()), name = "motion")
-//  val pose = context.actorOf(Props(new SNRobotPoseActor()), name = "pose")
-//  val sound = context.actorOf(Props(new SNSoundDetectionActor()), name = "sound")
+  val behavior = context.actorOf(Props(new SNBehaviorManagerActor()), name = "behavior")
+  val motion = context.actorOf(Props(new SNMotionActor()), name = "motion")
+  val pose = context.actorOf(Props(new SNRobotPoseActor()), name = "pose")
+  val sound = context.actorOf(Props(new SNSoundDetectionActor()), name = "sound")
+
+  // Initialize a DeadLeter Logging
+  val listener = context.system.actorOf(Props(new Actor {
+    def receive = {
+      case d: DeadLetter ⇒ log.error(s" Received Dead message: $d")
+    }
+  }))
+  context.system.eventStream.subscribe(listener, classOf[DeadLetter])
+
 
   log.info("NaoSupervisor Initalized.")
   // Print all the paths registered out
@@ -48,7 +58,6 @@ case object Start
 class NaoServer extends Bootable {
   // Create the system actor
   val system = ActorSystem("NaoApplication", ConfigFactory.load.getConfig("nao"))
-
 
   def startup() {
     // Create and send the Start message to the nao supervisor

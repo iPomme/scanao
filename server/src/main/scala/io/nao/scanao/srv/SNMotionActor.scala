@@ -74,6 +74,3 @@ class SNMotionActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy(
   }
 }
 
-object SNMotionActor {
-  System.loadLibrary("JNaoQi")
-}

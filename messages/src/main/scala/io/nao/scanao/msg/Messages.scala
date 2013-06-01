@@ -3,24 +3,24 @@ package io.nao.scanao.msg
 /**
  * Object used to synchronized the Nao calls
  */
-object Done
+object Done extends Serializable
 
 /*********************************************
  * Audio
  *********************************************/
 package audioDevice {
 
-object DisableEnergyComputation
+object DisableEnergyComputation extends Serializable
 
-object EnableEnergyComputation
+object EnableEnergyComputation extends Serializable
 
-object FrontMicEnergy
+object FrontMicEnergy extends Serializable
 
-object RearMicEnergy
+object RearMicEnergy extends Serializable
 
-object LeftMicEnergy
+object LeftMicEnergy extends Serializable
 
-object RightMicEnergy
+object RightMicEnergy extends Serializable
 
 case class MicEnergyResult(value: Float)
 
@@ -35,7 +35,7 @@ case class RunBehavior(name: String)
 
 case class StopBehavior(name: String)
 
-object BehaviorNames
+object BehaviorNames extends Serializable
 
 case class IsBehaviorRunning(name: String)
 
@@ -46,7 +46,7 @@ case class IsBehaviorRunning(name: String)
  *********************************************/
 package memory {
 
-object DataKeysList
+object DataKeysList extends Serializable
 
 case class Insert(key: String, value: String)
 
@@ -102,11 +102,11 @@ case class OpenHand(hand: Hand)
  *********************************************/
 package robotPose {
 
-object ActualPoseAndTime
+object ActualPoseAndTime extends Serializable
 
 case class Pose(name: String, since: Float)
 
-object PosesName
+object PosesName extends Serializable
 
 }
 
@@ -115,7 +115,7 @@ object PosesName
  *********************************************/
 package txt {
 
-object AvailableLanguages
+object AvailableLanguages extends Serializable
 
 case class Say(string: String)
 

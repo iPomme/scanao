@@ -46,7 +46,3 @@ class SNBehaviorManagerActor(ip: String = "127.0.0.1", port: Int = 9559) extends
     }
   }
 }
-
-object SNBehaviorManagerActor {
-  System.loadLibrary("JNaoQi")
-}
