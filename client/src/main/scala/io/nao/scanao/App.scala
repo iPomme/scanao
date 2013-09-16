@@ -24,9 +24,9 @@ object App {
 
   def main(args: Array[String]) {
     testSpeech
-    testPosition
-    testBehavior
-    testMemory
+//    testPosition
+//    testBehavior
+//    testMemory
     system.shutdown()
 
   }
@@ -46,6 +46,7 @@ object App {
     // The result is the same as in the callback function
     println("Instance is "+results.hashCode())
     results.foreach(println)
+
   }
 
   def testPosition = {
@@ -60,7 +61,7 @@ object App {
     println("getting text to speech actor ...")
     val textToSpeechActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/text")
     println("About to say hello ...")
-    textToSpeechActor ! txt.Say("Salut Luisa!")
+    textToSpeechActor ! txt.Say("Bon, maintenant je sais communiquer avec utilisant Akka, c'est pas sorcier!")
   }
 
   def testMemory = {
