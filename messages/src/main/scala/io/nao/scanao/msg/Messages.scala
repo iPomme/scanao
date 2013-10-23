@@ -1,54 +1,78 @@
 package io.nao.scanao.msg
 
+
+trait NaoMessage extends Serializable
+
 /**
  * Object used to synchronized the Nao calls
  */
-object Done extends Serializable
+object Done extends NaoMessage
 
-/*********************************************
- * Audio
- *********************************************/
+/** *******************************************
+  * Technical messages
+  * ********************************************/
+
+package tech {
+
+import scala.concurrent.Promise
+import akka.actor.ActorRef
+
+case class SubscribeEvent(eventName: String, moduleName: String, methodName: String,  callback : ActorRef) extends NaoMessage
+
+case class EventSubscribed(eventName: String, moduleName: String, methodName: String) extends NaoMessage
+
+case class UnsubscribeEvent(eventName: String, moduleName: String) extends NaoMessage
+
+case class NaoEvent(eventName: String, values: Any, message: String) extends NaoMessage
+
+}
+
+/** *******************************************
+  * Audio
+  * ********************************************/
 package audioDevice {
 
-object DisableEnergyComputation extends Serializable
+object DisableEnergyComputation extends NaoMessage
 
-object EnableEnergyComputation extends Serializable
+object EnableEnergyComputation extends NaoMessage
 
-object FrontMicEnergy extends Serializable
+object FrontMicEnergy extends NaoMessage
 
-object RearMicEnergy extends Serializable
+object RearMicEnergy extends NaoMessage
 
-object LeftMicEnergy extends Serializable
+object LeftMicEnergy extends NaoMessage
 
-object RightMicEnergy extends Serializable
+object RightMicEnergy extends NaoMessage
 
 case class MicEnergyResult(value: Float)
 
 }
 
-/*********************************************
- * Behavior
- *********************************************/
+/** *******************************************
+  * Behavior
+  * ********************************************/
 package behavior {
 
 case class RunBehavior(name: String)
 
 case class StopBehavior(name: String)
 
-object BehaviorNames extends Serializable
+object BehaviorNames extends NaoMessage
 
 case class IsBehaviorRunning(name: String)
 
 }
 
-/*********************************************
- * Memory
- *********************************************/
+/** *******************************************
+  * Memory
+  * ********************************************/
 package memory {
 
-object DataKeysList extends Serializable
+object DataKeysList extends NaoMessage
 
 case class Insert(key: String, value: String)
+
+case class DataInMemory(key: String)
 
 case class DataInMemoryAsInt(key: String)
 
@@ -69,9 +93,9 @@ case class DataList(filter: String)
 }
 
 
-/*********************************************
- * Motion
- *********************************************/
+/** *******************************************
+  * Motion
+  * ********************************************/
 package motion {
 
 import io.nao.scanao.msg.Hand.Hand
@@ -97,28 +121,28 @@ case class OpenHand(hand: Hand)
 
 }
 
-/*********************************************
- * Pose
- *********************************************/
+/** *******************************************
+  * Pose
+  * ********************************************/
 package robotPose {
 
-object ActualPoseAndTime extends Serializable
+object ActualPoseAndTime extends NaoMessage
 
 case class Pose(name: String, since: Float)
 
-object PosesName extends Serializable
+object PosesName extends NaoMessage
 
 }
 
-/*********************************************
- * Speech
- *********************************************/
+/** *******************************************
+  * Speech
+  * ********************************************/
 package txt {
 
-object AvailableLanguages extends Serializable
+object AvailableLanguages extends NaoMessage
 
-case class Say(string: String)
+case class Say(string: String) extends NaoMessage
 
-case class SayToFileAndPlay(string: String)
+case class SayToFileAndPlay(string: String) extends NaoMessage
 
 }

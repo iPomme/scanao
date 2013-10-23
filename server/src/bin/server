@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "x$JAVA_MIN_MEM" = "x" ]; then
-    JAVA_MIN_MEM=1000M
+    JAVA_MIN_MEM=750M
     export JAVA_MIN_MEM
 fi
 

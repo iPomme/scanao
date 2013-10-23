@@ -4,6 +4,23 @@
  *  - At the low level jNaoqi is used to bridge the C++ code with the JVM.        -
  *  -                                                                             -
  *  -  CreatedBy: Nicolas Jorand                                                  -
+ *  -       Date: 15 Oct 2013                                                      -
+ *  -                                                                            	-
+ *  -       _______.  ______      ___      .__   __.      ___       ______       	-
+ *  -      /       | /      |    /   \     |  \ |  |     /   \     /  __  \      	-
+ *  -     |   (----`|  ,----'   /  ^  \    |   \|  |    /  ^  \   |  |  |  |     	-
+ *  -      \   \    |  |       /  /_\  \   |  . `  |   /  /_\  \  |  |  |  |     	-
+ *  -  .----)   |   |  `----. /  _____  \  |  |\   |  /  _____  \ |  `--'  |     	-
+ *  -  |_______/     \______|/__/     \__\ |__| \__| /__/     \__\ \______/      	-
+ *  -----------------------------------------------------------------------------
+ */
+
+/*
+ * -----------------------------------------------------------------------------
+ *  - ScaNao is an open-source enabling Nao's control from Scala code.            -
+ *  - At the low level jNaoqi is used to bridge the C++ code with the JVM.        -
+ *  -                                                                             -
+ *  -  CreatedBy: Nicolas Jorand                                                  -
  *  -       Date: 3 Feb 2013                                                      -
  *  -                                                                            	-
  *  -       _______.  ______      ___      .__   __.      ___       ______       	-
@@ -17,52 +34,82 @@
 
 package io.nao.scanao.srv
 
-import com.aldebaran.proxy.ALProxy
-import io.nao.scanao.msg.Done
-import io.nao.scanao.msg.memory._
 import akka.actor.{ActorLogging, Actor}
+import com.aldebaran.qimessaging.{Future, Session}
+import scala.collection.JavaConverters._
+import java.util.{ArrayList => JArrayList}
+import java.lang.{Object => JObject}
+import io.nao.scanao.msg.memory._
+import io.nao.scanao.msg.memory.DataInMemoryAsBoolean
+import io.nao.scanao.msg.memory.DataInMemoryAsString
+import io.nao.scanao.msg.memory.DataInMemoryAsInt
+import io.nao.scanao.msg.memory.Insert
+import io.nao.scanao.srv.NaoServer._
 
-class SNMemoryActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALMemory", ip, port) with SNMemory with Actor with ActorLogging {
+class SNMemoryActor extends Actor with ActorLogging with SNQIMessage {
 
   log.info("Creating instance of SNMemoryActor")
 
+  val moduleName = "ALMemory"
+
   def receive = {
     case insert: Insert => {
-      insertData(insert.key)(insert.value)
-      sender ! Done
+      srv.call("insertData", insert.key, insert.value)
     }
     case data: DataInMemoryAsInt => {
-      sender ! getData(data.key).toInt
+      val fut: Future[Int] = srv.call[Int]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
+    }
+    case data: DataInMemory => {
+      val fut: Future[JObject] = srv.call[JObject]("getData", data.key)
+      val resp = try {
+        fut.get(TIMEOUT, TIMEOUT_UNIT)
+      } catch {
+        case ex:Exception => None
+      }
+      sender ! resp
+
     }
     case data: DataInMemoryAsString => {
-      sender ! getData(data.key).toString
+      val fut: Future[String] = srv.call[String]("getData", data.key)
+      val resp = try {
+        fut.get(TIMEOUT, TIMEOUT_UNIT)
+      } catch {
+        case ex:Exception => None
+      }
+      sender ! resp
+
     }
     case data: DataInMemoryAsBoolean => {
-      sender ! getData(data.key).toBoolean
+      val fut: Future[Boolean] = srv.call[Boolean]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
     }
     case data: DataInMemoryAsFloat => {
-      sender ! getData(data.key).toFloat
+      val fut: Future[Float] = srv.call[Float]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
     }
     case data: DataInMemoryAsByteList => {
-      sender ! getData(data.key).toBinary.toList
+      val fut: Future[JArrayList[JObject]] = srv.call[JArrayList[JObject]]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT).asScala.toList.map(t => t.asInstanceOf[Byte])
     }
     case data: DataInMemoryAsFloatList => {
-      sender ! getData(data.key).toFloatArray.toList
+      val fut: Future[JArrayList[JObject]] = srv.call[JArrayList[JObject]]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT).asScala.toList.map(t => t.asInstanceOf[Float])
     }
     case data: DataInMemoryAsIntList => {
-      sender ! getData(data.key).toIntArray.toList
+      val fut: Future[JArrayList[JObject]] = srv.call[JArrayList[JObject]]("getData", data.key)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT).asScala.toList.map(t => t.asInstanceOf[Int])
     }
     case data: DataList => {
-      var result: Array[String] = getDataList(data.filter)
-      sender ! result.toList
+      val fut: Future[JArrayList[JObject]] = srv.call[JArrayList[JObject]]("getDataList", data.filter)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT).asScala.toList.map(t => t.asInstanceOf[String])
     }
     case DataKeysList => {
-      var result: Array[String] = getDataListName
-      sender ! result.toList
+      val fut: Future[JArrayList[JObject]] = srv.call[JArrayList[JObject]]("getDataListName")
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT).asScala.toList.map(t => t.asInstanceOf[String])
     }
     case x@_ => {
       log.error("Unknown Message " + x)
     }
-
   }
 }

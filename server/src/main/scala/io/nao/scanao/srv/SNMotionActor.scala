@@ -17,56 +17,53 @@
 
 package io.nao.scanao.srv
 
-import scala.Enumeration
-import com.aldebaran.proxy.ALProxy
-import io.nao.scanao.msg.motion._
-import io.nao.scanao.msg.Done
 import akka.actor.{ActorLogging, Actor}
+import io.nao.scanao.msg.motion.{Stiffness, OpenHand, CloseHand}
 
 /**
  * This package is used for syntactic sugar when sending a message to thi Actor
  */
 
-class SNMotionActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALMotion", ip, port) with SNMotion with Actor with ActorLogging {
+class SNMotionActor extends Actor with ActorLogging with SNQIMessage {
 
-  log.info("Creating instance of SNMotionActor")
+  log.info("Creating instance of SNMemoryActor")
+
+  val moduleName = "ALMotion"
+
 
   def receive = {
     case data: Stiffness => {
-      setStiffnesses(data.joint)
-      sender ! Done
+      srv.call("setStiffnesses", data.joint.name, data.joint.stiffness.asInstanceOf[java.lang.Float])
     }
-    case data: AngleInterpolation => {
-      angleInterpolation(data.joints, data.absolute)
-      sender ! Done
-    }
-    case data: AngleInterpolationBezier => {
-      angleInterpolationBezier(data.joints)
-      sender ! Done
-    }
-    case data: AngleInterpolationWithSpeed => {
-      angleInterpolationWithSpeed(data.joints, data.maxSpeed)
-      sender ! Done
-    }
-    case data: ChangeAngles => {
-      changeAngles(data.joints, data.maxSpeed)
-      sender ! Done
-    }
-    case data: ChangePosition => {
-      changePosition(data.effectorName, data.space, data.fractionMaxSpeed)
-      sender ! Done
-    }
+//    case data: AngleInterpolation => {
+//      angleInterpolation(data.joints, data.absolute)
+//      sender ! Done
+//    }
+//    case data: AngleInterpolationBezier => {
+//      angleInterpolationBezier(data.joints)
+//      sender ! Done
+//    }
+//    case data: AngleInterpolationWithSpeed => {
+//      angleInterpolationWithSpeed(data.joints, data.maxSpeed)
+//      sender ! Done
+//    }
+//    case data: ChangeAngles => {
+//      changeAngles(data.joints, data.maxSpeed)
+//      sender ! Done
+//    }
+//    case data: ChangePosition => {
+//      changePosition(data.effectorName, data.space, data.fractionMaxSpeed)
+//      sender ! Done
+//    }
     case data: CloseHand => {
-      closeHand(data.hand)
-      sender ! Done
+      srv.call("closeHand", data.hand.name)
     }
     case data: OpenHand => {
-      openHand(data.hand)
-      sender ! Done
+      srv.call("openHand", data.hand.name)
     }
-    case data: AreResourcesAvailable => {
-      sender ! areResourcesAvailable(data.resourceNames)
-    }
+//    case data: AreResourcesAvailable => {
+//      sender ! areResourcesAvailable(data.resourceNames)
+//    }
 
     case x@_ => {
       log.error("Unknown Message " + x)
