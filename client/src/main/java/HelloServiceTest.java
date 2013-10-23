@@ -4,7 +4,7 @@
  *  - At the low level jNaoqi is used to bridge the C++ code with the JVM.        -
  *  -                                                                             -
  *  -  CreatedBy: Nicolas Jorand                                                  -
- *  -       Date: 3 Feb 2013                                                      -
+ *  -       Date: 22 Sep 2013                                                      -
  *  -                                                                            	-
  *  -       _______.  ______      ___      .__   __.      ___       ______       	-
  *  -      /       | /      |    /   \     |  \ |  |     /   \     /  __  \      	-
@@ -15,32 +15,28 @@
  *  -----------------------------------------------------------------------------
  */
 
-package io.nao.scanao.srv
+import com.aldebaran.qimessaging.Application;
+import com.aldebaran.qimessaging.Future;
+import com.aldebaran.qimessaging.Session;
 
-import com.aldebaran.proxy.Variant
+public class HelloServiceTest {
 
-trait SNRobotPose extends SNProxy {
+    public static void main(String[] args) {
+        try{
+        Application app = new Application(args);
+        Session session = new Session();
+        Future<Void> fut = session.connect("tcp://sonny.local:9559");
+        synchronized(fut) {
+            fut.wait(1000);
+        }
 
-  /**
-  <summary>
-    Get the actual robot pose and the time since this pose was activate.
-  </summary>
-  @return A tuple array of size 2. With first a string of the robot pose and then a float with the time in second since this pose is activated.
-    */
-  def getActualPoseAndTime: (String, Float) = {
-    val result: Variant = call("getActualPoseAndTime")
-    (result.getElement(0).toString, result.getElement(1).toFloat)
-  }
+        com.aldebaran.qimessaging.Object hello = null;
+        hello = session.service("hello");
+        String greeting = hello.<String>call("greet","Nicolas").get();
+        System.out.println(greeting);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
-  /**
-  <summary>
-   Get the full list of pose possibly  by this module.
-   </summary>
-   @return A ALValue array of string containing the possible Poses.
-    */
-  def getPoseNames: Array[String] = {
-    val result: Variant = call("getPoseNames")
-    result.toStringArray.asInstanceOf[Array[String]]
-  }
-
+    }
 }

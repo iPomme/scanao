@@ -20,16 +20,53 @@ object App {
 
   println("getting actor system ...")
 
-  val system = ActorSystem("NaoApplication", ConfigFactory.load.getConfig("naoClient"))
+  val customConf = ConfigFactory.parseString("""
+
+                 |akka {
+                 |
+                 |  actor {
+                 |    provider = "akka.remote.RemoteActorRefProvider"
+                 |  }
+                 |
+                 |  remote {
+                 |    netty {
+                 |      hostname = "192.168.1.120"
+                 |      remote.netty.port = 0
+                 |
+                 |    }
+                 |  }
+                 |
+                 |  # Event handlers to register at boot time (Logging$DefaultLogger logs to STDOUT)
+                 |    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+                 |
+                 |    # Log level used by the configured loggers (see "event-handlers") as soon
+                 |    # as they have been started; before that, see "stdout-loglevel"
+                 |    # Options: ERROR, WARNING, INFO, DEBUG
+                 |    loglevel = DEBUG
+                 |
+                 |    # Log level for the very basic logger activated during AkkaApplication startup
+                 |    # Options: ERROR, WARNING, INFO, DEBUG
+                 |    stdout-loglevel = DEBUG
+                 |}
+                                             """.stripMargin)
+
+  val system = ActorSystem("NaoClientApplication", ConfigFactory.load(customConf))
 
   def main(args: Array[String]) {
-    testSpeech
+    testEvents
+//    testSpeech
 //    testPosition
 //    testBehavior
 //    testMemory
     system.shutdown()
 
   }
+  def testEvents = {
+      val eventManager = system.actorFor("akka://NaoApplication@127.0.0.1:2552/user/nao/evt")
+//      eventManager ! tech.SubscribeEvent("ALTextToSpeech/TextStarted", "SNEvents", "event")
+      while (true) Thread.sleep(100)
+  }
+
   def testBehavior = {
     val behaviorActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/behavior")
     // Create the future having the list of the behaviors

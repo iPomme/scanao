@@ -17,10 +17,9 @@
 
 package io.nao.scanao.srv
 
-import com.aldebaran.proxy.ALProxy
 import akka.actor.{ActorLogging, Actor}
 
-class SNSoundDetectionActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALSoundDetection", ip, port) with SNSoundDetection with Actor with ActorLogging {
+class SNSoundDetectionActor(ip: String = "127.0.0.1", port: Int = 9559) extends Actor with ActorLogging {
   log.info("Creating instance of SNSoundDetectionActor")
 
   def receive = {

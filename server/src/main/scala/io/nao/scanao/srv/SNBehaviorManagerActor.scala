@@ -17,32 +17,38 @@
 
 package io.nao.scanao.srv
 
-import java.lang.String
-import com.aldebaran.proxy.ALProxy
-import io.nao.scanao.msg.behavior._
-import io.nao.scanao.msg.Done
 import akka.actor.{ActorLogging, Actor}
+import io.nao.scanao.msg.behavior.{BehaviorNames, IsBehaviorRunning, StopBehavior, RunBehavior}
+import com.aldebaran.qimessaging.Future
+import io.nao.scanao.srv.NaoServer._
+import io.nao.scanao.msg.behavior.RunBehavior
+import io.nao.scanao.msg.behavior.IsBehaviorRunning
+import io.nao.scanao.msg.behavior.StopBehavior
 
-class SNBehaviorManagerActor(ip: String = "127.0.0.1", port: Int = 9559) extends ALProxy("ALBehaviorManager", ip, port) with SNBehaviorManager with Actor with ActorLogging{
+class SNBehaviorManagerActor extends Actor with ActorLogging with SNQIMessage {
 
   log.info("Creating instance of SNBehaviorManagerActor")
+  val moduleName = "ALBehaviorManager"
 
   def receive = {
     case msg: RunBehavior => {
-      sender ! runBehavior(msg.name)
+      log.debug(s"About to run the behavior '${msg.name}'")
+      val fut: Future[Int] = srv.call[Int]("runBehavior", msg.name)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
     }
     case msg: StopBehavior => {
-      stopBehavior(msg.name)
-      sender ! Done
+      srv.call("stopBehavior", msg.name)
     }
     case msg: IsBehaviorRunning => {
-      sender ! isBehaviorRunning(msg.name)
+      sender ! srv.call("isBehaviorRunning", msg.name)
     }
     case BehaviorNames => {
-      sender ! getBehaviorNames.toList
+      val fut = srv.call("getBehaviorNames")
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
     }
     case x@_ => {
       log.error("Unknown Message " + x)
     }
   }
+
 }

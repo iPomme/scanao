@@ -4,7 +4,7 @@
  *  - At the low level jNaoqi is used to bridge the C++ code with the JVM.        -
  *  -                                                                             -
  *  -  CreatedBy: Nicolas Jorand                                                  -
- *  -       Date: 3 Feb 2013                                                      -
+ *  -       Date: 22 Sep 2013                                                      -
  *  -                                                                            	-
  *  -       _______.  ______      ___      .__   __.      ___       ______       	-
  *  -      /       | /      |    /   \     |  \ |  |     /   \     /  __  \      	-
@@ -15,33 +15,32 @@
  *  -----------------------------------------------------------------------------
  */
 
-package io.nao.scanao.srv
+import com.aldebaran.qimessaging.Application;
+import com.aldebaran.qimessaging.Future;
+import com.aldebaran.qimessaging.Session;
 
-import akka.actor.{ActorLogging, Actor}
+import java.util.ArrayList;
 
-class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends Actor with ActorLogging {
+public class TestEvents {
 
-  log.info("Creating instance of SNAudioDeviceActor")
+    public static void main(String[] args) {
+        try {
+            Application app = new Application(args);
+            Session session = new Session();
+            Future<Void> fut = session.connect("tcp://sonny.local:9559");
+            synchronized (fut) {
+                fut.wait(1000);
+            }
 
-
-  def receive = {
-    //case DisableEnergyComputation => disableEnergyComputation
-    //case EnableEnergyComputation => enableEnergyComputation
-    //case FrontMicEnergy => {
-    //sender ! MicEnergyResult (getFrontMicEnergy)
-    //}
-    //case RearMicEnergy => {
-    //sender ! MicEnergyResult (getRearMicEnergy)
-    //}
-    //case LeftMicEnergy => {
-    //sender ! MicEnergyResult (getLeftMicEnergy)
-    //}
-    //case RightMicEnergy => {
-    //sender ! MicEnergyResult (getRightMicEnergy)
-    //}
-    case x@_ => {
-      log.error("Unknown Message " + x)
+            com.aldebaran.qimessaging.Object mem = null;
+            mem = session.service("ALMemory");
+            ArrayList help = mem.<ArrayList>call("getEventList").get();
+            mem.call("subscribeToEvent", "ALChestButton/SimpleClickOccurred", "hello", "event");
+            mem.call("subscribeToEvent", "LeftBumperPressed", "hello", "event");
+            System.out.println(help);
+//            while(true) Thread.sleep(100);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-  }
 }
-
