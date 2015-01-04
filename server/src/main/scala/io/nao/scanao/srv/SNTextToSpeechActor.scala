@@ -23,31 +23,10 @@ import io.nao.scanao.msg._
 import akka.event.LoggingAdapter
 import io.nao.scanao.srv.NaoServer._
 
-class SNTextToSpeechActor extends Actor with ActorLogging {
+class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage {
 
   log.info("Creating instance of SNTextToSpeechActor")
-
-  var srv: com.aldebaran.qimessaging.Object = _
-
-
-
   val moduleName = "ALTextToSpeech"
-  override def preStart() {
-    val session = new Session()
-    log.info(s"$moduleName is initializing against QiMessage...")
-    val fut = session.connect(NaoSupervisor.address)
-    fut.synchronized(fut.wait(TIMEOUT_IN_MILLIS))
-    log.info(s"$moduleName about to create the service...")
-    srv = session.service(moduleName)
-    log.info(s"$moduleName about to call ping.")
-    val ping: Boolean = srv.call("ping").get()
-
-    if (!ping) {
-      log.error(s"Could not ping $moduleName");
-    } else {
-      log.info(s"$moduleName initialized");
-    }
-  }
 
   def receive = {
     case txt.AvailableLanguages => {
