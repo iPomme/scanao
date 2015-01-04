@@ -10,16 +10,16 @@
     <name>NAO :: Parent pom</name>
     <url>http://maven.apache.org</url>
     <properties>
-        <maven.compiler.source>1.5</maven.compiler.source>
-        <maven.compiler.target>1.5</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <scala.version>2.10.2</scala.version>
-        <akka.version>2.1.0</akka.version>
+        <scala.version>2.11.4</scala.version>
+        <scala.bin>2.11</scala.bin>
+        <akka.version>2.3.8</akka.version>
         <!-- Testing framework -->
-        <junit.version>4.10</junit.version>
-        <specs.version>1.7.1</specs.version>
-        <scalatest.artifiactId>scalatest_2.10.0</scalatest.artifiactId>
-        <scalatest.version>1.8</scalatest.version>
+        <junit.version>4.12</junit.version>
+        <scalatest.artifiactId>scalatest</scalatest.artifiactId>
+        <scalatest.version>2.2.1</scalatest.version>
     </properties>
     <repositories>
         <repository>
@@ -37,27 +37,27 @@
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-actor_2.10</artifactId>
+                <artifactId>akka-actor_${scala.bin}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-remote_2.10</artifactId>
+                <artifactId>akka-remote_${scala.bin}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-kernel_2.10</artifactId>
+                <artifactId>akka-kernel_${scala.bin}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-agent_2.10</artifactId>
+                <artifactId>akka-agent_${scala.bin}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-slf4j_2.10</artifactId>
+                <artifactId>akka-slf4j_${scala.bin}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
 
@@ -70,7 +70,7 @@
             </dependency>
             <dependency>
                 <groupId>org.scalatest</groupId>
-                <artifactId>${scalatest.artifiactId}</artifactId>
+                <artifactId>${scalatest.artifiactId}_${scala.bin}</artifactId>
                 <version>${scalatest.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -83,7 +83,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>3.1.3</version>
+                    <version>3.1.6</version>
                     <executions>
                         <execution>
                             <goals>

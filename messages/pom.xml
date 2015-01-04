@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.10</artifactId>
+            <artifactId>akka-actor_${scala.bin}</artifactId>
         </dependency>
 
         <!-- Test -->
@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>${scalatest.artifiactId}</artifactId>
+            <artifactId>${scalatest.artifiactId}_${scala.bin}</artifactId>
         </dependency>
     </dependencies>
 
