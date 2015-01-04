@@ -21,9 +21,11 @@ import akka.actor.{ActorLogging, Actor}
 import io.nao.scanao.msg.behavior.{BehaviorNames, IsBehaviorRunning, StopBehavior, RunBehavior}
 import com.aldebaran.qimessaging.Future
 import io.nao.scanao.srv.NaoServer._
+import io.nao.scanao.msg._
 import io.nao.scanao.msg.behavior.RunBehavior
 import io.nao.scanao.msg.behavior.IsBehaviorRunning
 import io.nao.scanao.msg.behavior.StopBehavior
+import java.util.concurrent.TimeUnit
 
 class SNBehaviorManagerActor extends Actor with ActorLogging with SNQIMessage {
 
@@ -33,14 +35,15 @@ class SNBehaviorManagerActor extends Actor with ActorLogging with SNQIMessage {
   def receive = {
     case msg: RunBehavior => {
       log.debug(s"About to run the behavior '${msg.name}'")
-      val fut: Future[Int] = srv.call[Int]("runBehavior", msg.name)
-      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
+      srv.call("runBehavior", msg.name)
     }
     case msg: StopBehavior => {
       srv.call("stopBehavior", msg.name)
     }
     case msg: IsBehaviorRunning => {
-      sender ! srv.call("isBehaviorRunning", msg.name)
+      log.debug(s"About to run the isBehaviorRunning for '${msg.name}'")
+      val fut: Future[Boolean] = srv.call[Boolean]("isBehaviorRunning", msg.name)
+      sender ! fut.get(TIMEOUT, TIMEOUT_UNIT)
     }
     case BehaviorNames => {
       val fut = srv.call("getBehaviorNames")

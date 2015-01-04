@@ -7,8 +7,8 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise, Await}
 import akka.util.Timeout
 import akka.actor.{Actor, ActorSystem, Props}
-import io.nao.scanao.msg.Head
 import io.nao.scanao.msg._
+import concurrent.ExecutionContext.Implicits.global
 
 
 object Launcher {
@@ -29,6 +29,7 @@ object Launcher {
 }
 
 class Control {
+
   import Launcher._
 
   val NaoLocation = "sonny.local"
@@ -41,18 +42,21 @@ class Control {
   val text = system.actorFor(naoText)
   val mot = system.actorFor(naoMotion)
 
-   // The keynote
-  val keyNote = system.actorOf(Props(new KeynoteCommand), "keynote")
+  // The keynote
+  val keyNote = system.actorOf(Props(new PreziCommand), "keynote")
 
   def init = {
-    mot ! motion.Stiffness(Head(stiffness = 1.0f))
+    //        mot ! motion.Stiffness(Head(stiffness = 1.0f))
 
   }
 
   def release = {
     try {
-      waitOn(ask(behave, behavior.RunBehavior("WebControl_SitDown")), 150)
+      behave ! behavior.RunBehavior("User/sitdown")
+      waitFor(2)
+      waitOn("User/sitdown")
       mot ! motion.Stiffness(Head(stiffness = 0.3f))
+      waitFor(2)
     } finally {
       system.shutdown()
     }
@@ -62,28 +66,37 @@ class Control {
   play(init) {
 
 //    keyNote ! "Start"
-//    val standFuture = ask(behave, behavior.RunBehavior("User/standup"))
-    text ! txt.Say("Bonjour, Je crois que je serai mieux debout.")
-//    waitOn(standFuture)
-//    val presFuture = ask(behave, behavior.RunBehavior("User/PresentationNicolas"))
-    text ! txt.Say("Voila, sa fait du bien.")
-//    waitOn(presFuture)
-
-//    behave ! behavior.RunBehavior("User/Disappointed")
-    text ! txt.Say("Malheureusement, je suis encore un débutant, je ne ferais donc pas trop long.")
-
-
-//    waitOn(ask(behave, behavior.RunBehavior("PresentationP1_general")))
-//    waitOn(ask(behave, behavior.RunBehavior("ScratchLeg")))
-//    waitOn(ask(behave, behavior.RunBehavior("PresentationP2_Simplification")))
 //
-//    val binoFuture = ask(behave, behavior.RunBehavior("Binoculars"))
-//    val monitorFuture = ask(text, txt.Say("Comme vous avez pu le voir ce matin, la solution peut être monitorée et fournir de précieuses informations pour les personnes en charge de l'exploitation mais aussi pour les gens du business."))
-//    waitOn(monitorFuture)
+//    behave ! behavior.RunBehavior("User/softshake_p1")
+//    waitFor(5)
+//    waitOn("User/softshake_p1")
+//    system.log.info("****** Premiere partie finie *********")
+//
+//    text ! txt.Say("Je crois que je serai mieux debout.")
+//    behave ! behavior.RunBehavior("User/standup")
+//    waitFor(5)
+//    waitOn("User/standup")
+//    system.log.info("******  Lever partie finie *********")
+//    text ! txt.Say("Voila, sa fait du bien.")
+//
+//    keyNote ! "NextSlide"
 
-//    behave ! behavior.RunBehavior("User/Kiss")
+//    behave ! behavior.RunBehavior("User/softshake_p2")
+//    waitFor(10)
+//    waitOn("User/softshake_p2")
+//    system.log.info("****** Deuxieme partie finie *********")
+
     keyNote ! "NextSlide"
-    text ! txt.Say("Je vous remercie de votre attention et je vais laisser la parole à Nicolas qui va vous presenter l'agenda.")
+    text ! txt.Say("Au fait, avez-vous remarqué que c'est moi qui change les diapo. C'est coule non! ")
+
+    behave ! behavior.RunBehavior("User/softshake_p3")
+    waitFor(10)
+    waitOn("User/softshake_p3")
+    system.log.info("****** Troisieme partie finie *********")
+
+    keyNote ! "NextSlide"
+
+    text ! txt.Say("Voila, je laisse la parole a Nicolas qui va vous expliquer les details d'implémentation.")
 
 
   }(release)
@@ -107,17 +120,28 @@ class Control {
 
   /**
    * Wait till the action has been executed.
-   * @param action The action to be performed
-   * @return
    */
-  def waitOn(action: => Future[Any], sec: Int = 180) = {
-    Await.result(action, sec seconds)
+  def waitOn(behaviorName: String, sec: Int = 3) = {
+    while (Await.result(behave ? behavior.IsBehaviorRunning(behaviorName), sec seconds).asInstanceOf[Boolean]) {
+      Thread.sleep(300)
+    }
+  }
+
+  /**
+   * Wait till the action has been executed.
+   */
+  def waitFor(sec: Int = 3) = {
+    var i = sec * 10
+    while (i > 0) {
+      Thread.sleep(100)
+      i -= 1
+    }
   }
 
 
 }
 
-class KeynoteCommand extends Actor {
+class PreziCommand extends Actor {
   val scriptEngine: ScriptEngine = new ScriptEngineManager().getEngineByName("AppleScript")
 
 
@@ -134,15 +158,8 @@ class KeynoteCommand extends Actor {
     try {
       val script: String =
         """
-        tell application "Keynote"
+        tell application "PreziDesktop"
           activate
-          try
-           tell slideshow 1
-             start
-           end tell
-          on error
-           activate
-          end try
         end tell
         """
       scriptEngine.eval(script)
@@ -157,7 +174,7 @@ class KeynoteCommand extends Actor {
                         tell application "System Events"
                           keystroke (ASCII character 29) -- Right
                         end tell
-    """
+                           """
       scriptEngine.eval(script)
     } catch {
       case e: Exception => e.printStackTrace()

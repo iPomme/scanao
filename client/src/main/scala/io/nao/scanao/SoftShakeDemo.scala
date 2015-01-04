@@ -65,9 +65,7 @@ class SoftshakeDemo {
 sealed trait State
 
 object Day extends State
-
 object Night extends State
-
 object CheckLight extends State
 
 case class LightSwitchedOff(level: Int)
@@ -140,6 +138,9 @@ class DayNight(initalValue: Int) extends Actor with FSM[State, Unit] with ActorL
   initialize
 }
 
+/**
+ * Actor used to reveive event from Nao
+ */
 class SoftshakeMediator extends Actor with ActorLogging {
 
   import SoftshakeApp._
@@ -149,6 +150,7 @@ class SoftshakeMediator extends Actor with ActorLogging {
   def receive = {
     case NaoEvent(eventName, values, message) => {
       log.info(s"received NaoEvent name: $eventName values: $values message: $message")
+      // Send the LightSwitchedOff to the State Machine
       if (eventName.startsWith("DarknessDetection"))
         context.actorFor("/user/daynight") ! LightSwitchedOff(values.toString.toInt)
     }
@@ -158,6 +160,9 @@ class SoftshakeMediator extends Actor with ActorLogging {
   }
 }
 
+/**
+ * Entry point of the demonstration
+ */
 object SoftshakeApp {
   implicit val timeout = Timeout(10 seconds)
 
@@ -173,11 +178,17 @@ object SoftshakeApp {
   def main(args: Array[String]) {
     val softApp = new SoftshakeDemo
 
-    softApp.naoTxtActor ! txt.Say(s"C'est partit !")
+    softApp.naoTxtActor ! txt.Say(s"C'est partit pour la démo, pourvu que ca marche !")
 
-    val darknessFuture = (softApp.naoMemoryActor ? memory.DataInMemoryAsString("DarknessDetection/DarknessValue"))
-    val subscribeFuture = (softApp.naoEvtActor ? tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator))
+    /**
+     * Subscribe to event and use a state Machine to handle it
+     */
+    val darknessFuture = softApp.naoMemoryActor ? memory.DataInMemoryAsString("DarknessDetection/DarknessValue") // Call to get a value
+    val subscribeFuture = softApp.naoEvtActor ? tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator) // Subscribe to an event
 
+    /**
+     * Comprehensive for to create a "Workflow" (could be done with nested map and flatMap)
+     */
     for {
       currentBright ← darknessFuture.mapTo[Int]
       subscribed ← subscribeFuture.mapTo[EventSubscribed]
@@ -186,12 +197,16 @@ object SoftshakeApp {
     }
 
     /**
-     * Console
+     * Sample call
      */
-    println("Type 'exit' to finish")
     def count() {
       (1 to 10).foreach(x => softApp.naoTxtActor ! txt.Say(x.toString))
     }
+
+    /**
+     * Console
+     */
+    println("Type 'exit' to finish")
 
     def demoCases(cmd: String) = cmd match {
       case "count" => count()
@@ -203,7 +218,6 @@ object SoftshakeApp {
       case txt@_ => println(s"you wrote: $txt")
     }
     Iterator.continually(Console.readLine).takeWhile(_ != "exit").foreach(cmd => demoCases(cmd))
-
 
 
     softApp.shutdown()
