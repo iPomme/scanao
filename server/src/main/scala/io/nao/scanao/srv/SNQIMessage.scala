@@ -20,16 +20,16 @@ package io.nao.scanao.srv
 import io.nao.scanao.srv.NaoServer._
 import com.aldebaran.qimessaging.{Future, Session}
 import akka.event.LoggingAdapter
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 
 
 trait SNQIMessage {
-  this: Actor =>
+  this: Actor with ActorLogging =>
   val moduleName: String
 
   lazy val session = new Session()
   lazy val srv: com.aldebaran.qimessaging.Object = session.service(moduleName)
-  val log: LoggingAdapter
+
 
   override def preStart() {
     log.info(s"$moduleName is initializing against QiMessage")
