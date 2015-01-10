@@ -19,8 +19,7 @@
 
 
     <properties>
-        <nao.ip>192.168.1.72</nao.ip>
-        <final.name>uber-${project.artifactId}-${project.version}</final.name>
+        
     </properties>
 
     <dependencies>
