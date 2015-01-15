@@ -31,16 +31,12 @@ import scala.concurrent.duration._
 
 class NaoSupervisor extends Actor with ActorLogging {
 
-  val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
-  val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
+  lazy val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
+  lazy val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
 
 
   // Initialize a DeadLeter Logging
-  val listener = context.system.actorOf(Props(new Actor {
-    def receive = {
-      case d: DeadLetter ⇒ log.error(s" Received Dead message: $d")
-    }
-  }))
+  lazy val listener = context.system.actorOf(DeadLetterActor.props())
   context.system.eventStream.subscribe(listener, classOf[DeadLetter])
 
 
@@ -56,6 +52,7 @@ class NaoSupervisor extends Actor with ActorLogging {
       log.info(s"${this.getClass.getName} received: $msg")
     }
   }
+
 
 }
 
