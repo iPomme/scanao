@@ -45,11 +45,11 @@ class DemoActor(subscription: Promise[String]) extends Actor with ActorLogging {
   implicit val timeout = Timeout(TIMEOUT_DEFAULT)
 
   val robotIP = "sonny.local"
-  val naoEvt = s"akka://NaoApplication@$robotIP:2552/user/nao/evt"
-  val naoCmd = s"akka://NaoApplication@$robotIP:2552/user/nao/cmd"
-  val naoText = s"akka://NaoApplication@$robotIP:2552/user/nao/cmd/text"
-  val naoMemory = s"akka://NaoApplication@$robotIP:2552/user/nao/cmd/memory"
-  val naoBehavior = s"akka://NaoApplication@$robotIP:2552/user/nao/cmd/behavior"
+  val naoEvt = s"akka.tcp://NaoApplication@$robotIP:2552/user/nao/evt"
+  val naoCmd = s"akka.tcp://NaoApplication@$robotIP:2552/user/nao/cmd"
+  val naoText = s"akka.tcp://NaoApplication@$robotIP:2552/user/nao/cmd/text"
+  val naoMemory = s"akka.tcp://NaoApplication@$robotIP:2552/user/nao/cmd/memory"
+  val naoBehavior = s"akka.tcp://NaoApplication@$robotIP:2552/user/nao/cmd/behavior"
 
   val naoEvtActor = context.actorFor(naoEvt)
   val naoCmdActor = context.actorFor(naoCmd)

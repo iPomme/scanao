@@ -49,13 +49,6 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>src/nao</directory>
-            <outputDirectory>lib</outputDirectory>
-            <includes>
-                <include>lib*</include>
-            </includes>
-        </fileSet>
-        <fileSet>
             <directory>src/config</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
