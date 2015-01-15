@@ -17,7 +17,7 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 import com.aldebaran.qimessaging.Session
 import io.nao.scanao.msg._
 import akka.event.LoggingAdapter
@@ -45,4 +45,12 @@ class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage {
       log.error("Unknown Message " + x)
     }
   }
+}
+
+object SNTextToSpeechActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNTextToSpeechActor)
 }

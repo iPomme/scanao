@@ -17,7 +17,7 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 import io.nao.scanao.msg.motion.{Stiffness, OpenHand, CloseHand}
 
 /**
@@ -69,5 +69,13 @@ class SNMotionActor extends Actor with ActorLogging with SNQIMessage {
       log.error("Unknown Message " + x)
     }
   }
+}
+
+object SNMotionActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNMotionActor)
 }
 

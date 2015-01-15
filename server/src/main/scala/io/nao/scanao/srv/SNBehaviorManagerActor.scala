@@ -17,7 +17,7 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 import io.nao.scanao.msg.behavior.{BehaviorNames, IsBehaviorRunning, StopBehavior, RunBehavior}
 import com.aldebaran.qimessaging.Future
 import io.nao.scanao.srv.NaoServer._
@@ -54,4 +54,12 @@ class SNBehaviorManagerActor extends Actor with ActorLogging with SNQIMessage {
     }
   }
 
+}
+
+object SNBehaviorManagerActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNBehaviorManagerActor)
 }
