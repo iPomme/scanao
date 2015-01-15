@@ -205,7 +205,7 @@ class NaoServer extends Bootable {
     //Use the system's dispatcher as ExecutionContext
     import system.dispatcher
     val nao = system.actorOf(Props(new NaoSupervisor), name = "nao")
-    // Used to get the debug information about the actors varirables
+    // Used to get the debug information about the actors variables
     scala.util.Properties.envOrNone("NAO_DEBUG") match {
       case Some(_) =>  system.scheduler.schedule(2 seconds, 2 seconds, nao, "printDebug")
       case None =>  system.log.info("scanao not running in debug (use NAO_DEBUG=1 to enable it)")

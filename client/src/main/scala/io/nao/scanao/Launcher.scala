@@ -14,7 +14,7 @@ import concurrent.ExecutionContext.Implicits.global
 object Launcher {
   val robotIP = "sonny.local"
   val robotPort = "2552"
-  val remoteAkkaContext = s"akka://NaoApplication@$robotIP:$robotPort"
+  val remoteAkkaContext = s"akka.tcp://NaoApplication@$robotIP:$robotPort"
   val naoEvt = s"$remoteAkkaContext/user/nao/evt"
   val naoCmd = s"$remoteAkkaContext/user/nao/cmd"
   val naoText = s"$remoteAkkaContext/user/nao/cmd/text"

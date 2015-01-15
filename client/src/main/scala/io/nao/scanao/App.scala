@@ -30,14 +30,14 @@ object App {
                  |
                  |  remote {
                  |    netty {
-                 |      hostname = "192.168.1.120"
+                 |      hostname = "192.168.1.204"
                  |      remote.netty.port = 0
                  |
                  |    }
                  |  }
                  |
                  |  # Event handlers to register at boot time (Logging$DefaultLogger logs to STDOUT)
-                 |    event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+                 |    event-handlers = ["akka.event.slf4j.Slf4jLogger"]
                  |
                  |    # Log level used by the configured loggers (see "event-handlers") as soon
                  |    # as they have been started; before that, see "stdout-loglevel"
@@ -53,8 +53,8 @@ object App {
   val system = ActorSystem("NaoClientApplication", ConfigFactory.load(customConf))
 
   def main(args: Array[String]) {
-    testEvents
-//    testSpeech
+//    testEvents
+    testSpeech
 //    testPosition
 //    testBehavior
 //    testMemory
@@ -62,13 +62,13 @@ object App {
 
   }
   def testEvents = {
-      val eventManager = system.actorFor("akka://NaoApplication@127.0.0.1:2552/user/nao/evt")
+      val eventManager = system.actorFor("akka.tcp://NaoApplication@127.0.0.1:2552/user/nao/evt")
 //      eventManager ! tech.SubscribeEvent("ALTextToSpeech/TextStarted", "SNEvents", "event")
       while (true) Thread.sleep(100)
   }
 
   def testBehavior = {
-    val behaviorActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/behavior")
+    val behaviorActor = system.actorFor("akka.tcp://NaoApplication@sonny.local:2552/user/nao/behavior")
     // Create the future having the list of the behaviors
     val resultsFuture: Future[List[String]] = (behaviorActor ? behavior.BehaviorNames).mapTo[List[String]]
 
@@ -87,7 +87,7 @@ object App {
   }
 
   def testPosition = {
-    val motionActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/motion")
+    val motionActor = system.actorFor("akka.tcp://NaoApplication@sonny.local:2552/user/nao/motion")
     motionActor ! motion.Stiffness(LeftArm(stiffness = 1.0f))
     motionActor ! motion.OpenHand(Hand.Left)
     motionActor ! motion.CloseHand(Hand.Left)
@@ -96,14 +96,15 @@ object App {
 
   def testSpeech = {
     println("getting text to speech actor ...")
-    val textToSpeechActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/text")
+    val textToSpeechActor = system.actorFor("akka.tcp://NaoApplication@192.168.1.73:2552/user/nao/cmd/text")
     println("About to say hello ...")
+    textToSpeechActor ! "Blah"
     textToSpeechActor ! txt.Say("Bon, maintenant je sais communiquer avec utilisant Akka, c'est pas sorcier!")
   }
 
   def testMemory = {
     println("getting memory actor ...")
-    val memoryActor = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/memory")
+    val memoryActor = system.actorFor("akka.tcp://NaoApplication@sonny.local:2552/user/nao/memory")
     val memoryKey = "myTest"
     val badMemFuture: Future[String] = ask(memoryActor, memory.DataInMemoryAsString(memoryKey)).mapTo[String]
     badMemFuture onComplete {

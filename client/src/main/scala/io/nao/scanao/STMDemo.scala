@@ -14,7 +14,7 @@ object STMDemo {
 //    val result = Ref[Double]
 //
 //    // Get the Proxy
-//    val ttsProxy = system.actorFor("akka://NaoApplication@sonny.local:2552/user/nao/text")
+//    val ttsProxy = system.actorFor("akka.tcp://NaoApplication@sonny.local:2552/user/nao/text")
 //
 //    // Wrap the proxy into an Agent to execute side effect action along with STM transaction
 //    val tts = Agent(ttsProxy)
