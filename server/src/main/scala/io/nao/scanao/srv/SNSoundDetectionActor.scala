@@ -17,7 +17,7 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 
 class SNSoundDetectionActor(ip: String = "127.0.0.1", port: Int = 9559) extends Actor with ActorLogging {
   log.info("Creating instance of SNSoundDetectionActor")
@@ -29,4 +29,12 @@ class SNSoundDetectionActor(ip: String = "127.0.0.1", port: Int = 9559) extends 
     }
   }
 
+}
+
+object SNSoundDetectionActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNSoundDetectionActor)
 }

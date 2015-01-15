@@ -17,7 +17,7 @@
 
 package io.nao.scanao.srv
 
-import akka.actor.{ActorLogging, Actor}
+import akka.actor.{Props, ActorLogging, Actor}
 
 class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends Actor with ActorLogging {
 
@@ -43,5 +43,13 @@ class SNAudioDeviceActor(ip: String = "127.0.0.1", port: Int = 9559) extends Act
       log.error("Unknown Message " + x)
     }
   }
+}
+
+object SNAudioDeviceActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNAudioDeviceActor)
 }
 

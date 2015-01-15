@@ -17,34 +17,22 @@
 
 package io.nao.scanao.srv
 
-import collection.mutable.{HashMap, MultiMap, Set}
-import akka.actor._
-import akka.kernel.Bootable
-import com.typesafe.config.ConfigFactory
-import com.aldebaran.qimessaging.{Object => AldeObject, Application => AldeApplication, Future => AldeFuture, DynamicObjectBuilder, Session, QimessagingService}
-import akka.actor.DeadLetter
-import scala.concurrent.duration._
-import io.nao.scanao.msg.tech.{EventSubscribed, UnsubscribeEvent, NaoEvent, SubscribeEvent}
-import io.nao.scanao.msg.Constants._
-import io.nao.scanao.msg.Done
 import java.util.concurrent.TimeUnit
-import scala.sys.SystemProperties
 
+import akka.actor.{DeadLetter, _}
+import akka.kernel.Bootable
+import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Future => AldeFuture, Object => AldeObject, QimessagingService, Session}
+import com.typesafe.config.ConfigFactory
+import io.nao.scanao.msg.tech.{EventSubscribed, NaoEvent, SubscribeEvent, UnsubscribeEvent}
 
-object NaoSupervisor {
-  /**
-   * Used by the Java API
-   */
-  val app: AldeApplication = new AldeApplication(null)
-  val address = "tcp://0.0.0.0:9559"
+import scala.collection.mutable.{HashMap, MultiMap, Set}
+import scala.concurrent.duration._
 
-
-}
 
 class NaoSupervisor extends Actor with ActorLogging {
 
-  val cmdMgm = context.actorOf(Props(new SNCmdManagementActor()), name = "cmd")
-  val evtMgm = context.actorOf(Props(new SNEvtManagementActor()), name = "evt")
+  val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
+  val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
 
 
   // Initialize a DeadLeter Logging
@@ -71,17 +59,31 @@ class NaoSupervisor extends Actor with ActorLogging {
 
 }
 
+object NaoSupervisor {
+  /**
+   * Used by the Java API
+   */
+  val app: AldeApplication = new AldeApplication(null)
+  val address = "tcp://0.0.0.0:9559"
+
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new NaoSupervisor)
+}
+
 class SNCmdManagementActor extends Actor with ActorLogging {
 
 
   override def preStart() {
-    context.actorOf(Props(new SNTextToSpeechActor()), name = "text")
-    context.actorOf(Props(new SNMemoryActor()), name = "memory")
-//    context.actorOf(Props(new SNAudioDeviceActor()), name = "audio")
-    context.actorOf(Props(new SNBehaviorManagerActor()), name = "behavior")
-    context.actorOf(Props(new SNMotionActor()), name = "motion")
-//    context.actorOf(Props(new SNRobotPoseActor()), name = "pose")
-//    context.actorOf(Props(new SNSoundDetectionActor()), name = "sound")
+    context.actorOf(SNTextToSpeechActor.props(), name = "text")
+    context.actorOf(SNMemoryActor.props(), name = "memory")
+    //    context.actorOf(SNAudioDeviceActor.props()), name = "audio")
+    context.actorOf(SNBehaviorManagerActor.props(), name = "behavior")
+    context.actorOf(SNMotionActor.props(), name = "motion")
+    //    context.actorOf(SNRobotPoseActor.props), name = "pose")
+    //    context.actorOf(SNSoundDetectionActor.props), name = "sound")
     log.info("Command manager Initalized.")
     log.debug(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
 
@@ -96,8 +98,17 @@ class SNCmdManagementActor extends Actor with ActorLogging {
 
 }
 
+object SNCmdManagementActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNCmdManagementActor)
+}
+
 class SNEvtManagementActor extends Actor with ActorLogging {
-  import NaoServer._
+
+  import io.nao.scanao.srv.NaoServer._
 
   var subscriber = new HashMap[String, Set[ActorRef]] with MultiMap[String, ActorRef]
 
@@ -196,6 +207,14 @@ class SNEvtManagementActor extends Actor with ActorLogging {
   }
 }
 
+object SNEvtManagementActor {
+  /**
+   * Create the Props for this actor
+   * @return a Props for creating this actor
+   */
+  def props(): Props = Props(new SNEvtManagementActor)
+}
+
 class NaoServer extends Bootable {
   // Create the system actor
   val system = ActorSystem("NaoApplication", ConfigFactory.load.getConfig("nao"))
@@ -204,11 +223,11 @@ class NaoServer extends Bootable {
   def startup() {
     //Use the system's dispatcher as ExecutionContext
     import system.dispatcher
-    val nao = system.actorOf(Props(new NaoSupervisor), name = "nao")
+    val nao = system.actorOf(NaoSupervisor.props(), name = "nao")
     // Used to get the debug information about the actors variables
     scala.util.Properties.envOrNone("NAO_DEBUG") match {
-      case Some(_) =>  system.scheduler.schedule(2 seconds, 2 seconds, nao, "printDebug")
-      case None =>  system.log.info("scanao not running in debug (use NAO_DEBUG=1 to enable it)")
+      case Some(_) => system.scheduler.schedule(2 seconds, 2 seconds, nao, "printDebug")
+      case None => system.log.info("scanao not running in debug (use NAO_DEBUG=1 to enable it)")
     }
   }
 
