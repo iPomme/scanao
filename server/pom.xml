@@ -102,7 +102,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/assembly/bin.xml</descriptor>
-                    <finalName>scanao-server-${pom.version}</finalName>
+                    <finalName>scanao-server-${pom.version}.b${buildNumber}</finalName>
                 </configuration>
                 <executions>
                     <execution>
