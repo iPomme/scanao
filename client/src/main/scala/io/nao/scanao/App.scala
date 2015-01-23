@@ -1,6 +1,6 @@
 package io.nao.scanao
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{ActorSelection, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg._
 import akka.util.Timeout
@@ -30,7 +30,7 @@ object App {
                  |
                  |  remote {
                  |    netty {
-                 |      hostname = "192.168.1.204"
+                 |      hostname = "0.0.0.0"
                  |      remote.netty.port = 0
                  |
                  |    }
@@ -55,10 +55,10 @@ object App {
   def main(args: Array[String]) {
 //    testEvents
     testSpeech
-//    testPosition
+    testPosition
 //    testBehavior
 //    testMemory
-    system.shutdown()
+    //system.shutdown()
 
   }
   def testEvents = {
@@ -87,19 +87,36 @@ object App {
   }
 
   def testPosition = {
-    val motionActor = system.actorFor("akka.tcp://NaoApplication@sonny.local:2552/user/nao/motion")
-    motionActor ! motion.Stiffness(LeftArm(stiffness = 1.0f))
-    motionActor ! motion.OpenHand(Hand.Left)
-    motionActor ! motion.CloseHand(Hand.Left)
-    motionActor ! motion.Stiffness(LeftArm(stiffness = 0.0f))
+    val motionActor = system.actorSelection("akka.tcp://NaoApplication@192.168.1.72:2552/user/nao/cmd/motion").resolveOne(1 second)
+
+    motionActor onComplete {
+      case Success(ref) => {
+        ref ! motion.Stiffness(LeftArm(stiffness = 1.0f))
+        ref ! motion.OpenHand(Hand.Left)
+        ref ! motion.CloseHand(Hand.Left)
+        ref ! motion.Stiffness(LeftArm(stiffness = 0.0f))
+      }
+      case Failure(failure) => println(failure)
+    }
+
   }
 
   def testSpeech = {
     println("getting text to speech actor ...")
-    val textToSpeechActor = system.actorFor("akka.tcp://NaoApplication@192.168.1.73:2552/user/nao/cmd/text")
-    println("About to say hello ...")
-    textToSpeechActor ! "Blah"
-    textToSpeechActor ! txt.Say("Bon, maintenant je sais communiquer avec utilisant Akka, c'est pas sorcier!")
+    val textToSpeechActor = system.actorSelection("akka.tcp://NaoApplication@192.168.1.72:2552/user/nao/cmd/text").resolveOne(1 second)
+    println("About to something ...")
+    textToSpeechActor onComplete {
+      case Success(ref) => {
+        ref ! txt.Say("Bon, maintenant je sais communiquer avec Akka, c'est pas sorcier!")
+        ref ! txt.Say("1")
+        ref ! txt.Say("2")
+      }
+      case Failure(failure) => println(failure)
+    }
+
+
+    //    textToSpeechActor ! "Blah"
+    //    textToSpeechActor ! txt.Say("Bon, maintenant je sais communiquer avec utilisant Akka, c'est pas sorcier!")
   }
 
   def testMemory = {

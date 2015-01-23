@@ -31,22 +31,28 @@ import scala.concurrent.duration._
 
 class NaoSupervisor extends Actor with ActorLogging {
 
-  lazy val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
-  lazy val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
+  val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
+  val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
 
 
   // Initialize a DeadLeter Logging
-  lazy val listener = context.system.actorOf(DeadLetterActor.props())
-  context.system.eventStream.subscribe(listener, classOf[DeadLetter])
+  val listener = context.system.actorOf(DeadLetterActor.props())
 
 
   log.info("NaoSupervisor Initalized.")
-  // Print all the paths registered out
-  log.debug(context.children.foldLeft("NaoSupervisor registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
+
+  override def preStart() {
+    context.system.eventStream.subscribe(listener, classOf[DeadLetter])
+    log.info("NaoSupervisor preStarted.")
+    // Print all the paths registered out
+    log.debug(context.children.foldLeft("NaoSupervisor registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
+
+  }
 
   def receive = {
     case "printDebug" => {
       evtMgm ! "printMap"
+      cmdMgm ! "printMap"
     }
     case _@msg => {
       log.info(s"${this.getClass.getName} received: $msg")
@@ -88,7 +94,11 @@ class SNCmdManagementActor extends Actor with ActorLogging {
 
 
   def receive = {
+    case "printMap" => {
+      log.info(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
+    }
     case _@msg => {
+      log.debug(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
       log.info(s"${this.getClass.getName} received: $msg")
     }
   }
@@ -183,6 +193,7 @@ class SNEvtManagementActor extends Actor with ActorLogging {
       subscriber.filter(t => t._2.contains(who)).foreach(t => subscriber.removeBinding(t._1, who))
     }
     case "printMap" => {
+      log.info(context.children.foldLeft("Event Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
       log.info(s"The internal map is $subscriber")
     }
     case "kill" => {
