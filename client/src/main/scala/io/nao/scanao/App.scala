@@ -65,7 +65,7 @@ object App {
 
   def testPosition: Future[Unit] = {
     val done = Promise[Unit]()
-    val motionActor = system.actorSelection("akka.tcp://NaoApplication@192.168.1.72:2552/user/nao/cmd/motion").resolveOne(1 second)
+    val motionActor = system.actorSelection("akka.tcp://NaoApplication@sonny.local:2552/user/nao/cmd/motion").resolveOne()
 
     motionActor onComplete {
       case Success(ref) => {
@@ -86,7 +86,7 @@ object App {
   def testSpeech: Future[Unit] = {
     val done: Promise[Unit] = Promise[Unit]()
     println("getting text to speech actor ...")
-    val textToSpeechActor = system.actorSelection("akka.tcp://NaoApplication@192.168.1.72:2552/user/nao/cmd/text").resolveOne(1 second)
+    val textToSpeechActor = system.actorSelection("akka.tcp://NaoApplication@sonny.local:2552/user/nao/cmd/text").resolveOne()
     println("About to something ...")
     textToSpeechActor onComplete {
       case Success(ref) => {
