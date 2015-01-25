@@ -14,16 +14,19 @@ object Done extends NaoMessage
 
 package tech {
 
-import scala.concurrent.Promise
 import akka.actor.ActorRef
 
-case class SubscribeEvent(eventName: String, moduleName: String, methodName: String,  callback : ActorRef) extends NaoMessage
+case class SubscribeEvent(eventName: String, moduleName: String, methodName: String, callback: ActorRef) extends NaoMessage
 
 case class EventSubscribed(eventName: String, moduleName: String, methodName: String) extends NaoMessage
 
 case class UnsubscribeEvent(eventName: String, moduleName: String) extends NaoMessage
 
 case class NaoEvent(eventName: String, values: Any, message: String) extends NaoMessage
+
+case object PrintDebug extends NaoMessage
+
+case object PrintMap extends NaoMessage
 
 }
 
