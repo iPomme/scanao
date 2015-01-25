@@ -23,7 +23,7 @@ import akka.actor.{DeadLetter, _}
 import akka.kernel.Bootable
 import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Future => AldeFuture, Object => AldeObject, QimessagingService, Session}
 import com.typesafe.config.ConfigFactory
-import io.nao.scanao.msg.tech.{EventSubscribed, NaoEvent, SubscribeEvent, UnsubscribeEvent}
+import io.nao.scanao.msg.tech._
 
 import scala.collection.mutable.{HashMap, MultiMap, Set}
 import scala.concurrent.duration._
@@ -31,28 +31,29 @@ import scala.concurrent.duration._
 
 class NaoSupervisor extends Actor with ActorLogging {
 
-  val cmdMgm = context.actorOf(SNCmdManagementActor.props(), name = "cmd")
-  val evtMgm = context.actorOf(SNEvtManagementActor.props(), name = "evt")
-
-
-  // Initialize a DeadLeter Logging
-  val listener = context.system.actorOf(DeadLetterActor.props())
-
-
-  log.info("NaoSupervisor Initalized.")
-
   override def preStart() {
+    log.debug("NaoSupervisor preStart.")
+    // Create the children
+    context.actorOf(SNCmdManagementActor.props(), name = "cmd")
+    context.actorOf(SNEvtManagementActor.props(), name = "evt")
+    // Initialize a DeadLeter Logging Actor and subscirbe it to the eventStream
+    val listener = context.system.actorOf(DeadLetterActor.props())
     context.system.eventStream.subscribe(listener, classOf[DeadLetter])
-    log.info("NaoSupervisor preStarted.")
     // Print all the paths registered out
-    log.debug(context.children.foldLeft("NaoSupervisor registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
-
+    self ! PrintDebug
+    log.info("NaoSupervisor Initalized.")
   }
 
   def receive = {
-    case "printDebug" => {
-      evtMgm ! "printMap"
-      cmdMgm ! "printMap"
+    case msg@PrintDebug => {
+      val children = context.children.foldLeft("")((b, ref) => s"$b,$ref")
+      log.debug(s"About to send 'printDebug' to $children")
+      context.actorSelection("*").forward(msg)
+    }
+    case msg@PrintMap => {
+      val children = context.children.foldLeft("")((b, ref) => s"$b,$ref")
+      log.debug(s"About to send 'printMap' to all the $children")
+      context.actorSelection("*").forward(msg)
     }
     case _@msg => {
       log.info(s"${this.getClass.getName} received: $msg")
@@ -80,6 +81,7 @@ class SNCmdManagementActor extends Actor with ActorLogging {
 
 
   override def preStart() {
+    // Create an actor for each driver
     context.actorOf(SNTextToSpeechActor.props(), name = "text")
     context.actorOf(SNMemoryActor.props(), name = "memory")
     //    context.actorOf(SNAudioDeviceActor.props()), name = "audio")
@@ -87,18 +89,16 @@ class SNCmdManagementActor extends Actor with ActorLogging {
     context.actorOf(SNMotionActor.props(), name = "motion")
     //    context.actorOf(SNRobotPoseActor.props), name = "pose")
     //    context.actorOf(SNSoundDetectionActor.props), name = "sound")
+    self ! PrintDebug
     log.info("Command manager Initalized.")
-    log.debug(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
-
   }
 
 
   def receive = {
-    case "printMap" => {
+    case PrintDebug => {
       log.info(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
     }
     case _@msg => {
-      log.debug(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
       log.info(s"${this.getClass.getName} received: $msg")
     }
   }
@@ -192,9 +192,11 @@ class SNEvtManagementActor extends Actor with ActorLogging {
       // Remove the ActorRef from all the list of ActorRef. First get all the keys and then remove it
       subscriber.filter(t => t._2.contains(who)).foreach(t => subscriber.removeBinding(t._1, who))
     }
-    case "printMap" => {
-      log.info(context.children.foldLeft("Event Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
+    case PrintMap => {
       log.info(s"The internal map is $subscriber")
+    }
+    case PrintDebug => {
+      log.info(context.children.foldLeft("Event Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
     }
     case "kill" => {
       log.info(s" $sender killed")
@@ -234,7 +236,7 @@ class NaoServer extends Bootable {
     val nao = system.actorOf(NaoSupervisor.props(), name = "nao")
     // Used to get the debug information about the actors variables
     scala.util.Properties.envOrNone("NAO_DEBUG") match {
-      case Some(_) => system.scheduler.schedule(2 seconds, 2 seconds, nao, "printDebug")
+      case Some(_) => system.scheduler.schedule(2 seconds, 2 seconds, nao, PrintMap)
       case None => system.log.info("scanao not running in debug (use NAO_DEBUG=1 to enable it)")
     }
   }
@@ -251,14 +253,4 @@ object NaoServer {
 
 }
 
-object NaoServerApp {
-  def main(args: Array[String]) {
-    val nao = new NaoServer
-    nao.startup()
-    println("Nao Proxy is ready")
-    while (true) {
-      Thread.sleep(10)
-    }
 
-  }
-}
