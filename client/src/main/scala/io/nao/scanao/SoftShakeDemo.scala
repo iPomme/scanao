@@ -46,7 +46,7 @@ class SoftshakeDemo {
 
 
   val mediator = system.actorOf(Props[SoftshakeMediator], "mediator")
-  val fsmDayNightActor = system.actorOf(Props(new DayNight(0)), "daynight")
+  val fsmDayNightActor = system.actorOf(Props[DayNight], "daynight")
   val naoTxtActor = system.actorFor(naoText)
   val naoEvtActor = system.actorFor(naoEvt)
   val naoCmdActor = system.actorFor(naoCmd)
@@ -72,7 +72,7 @@ case class LightSwitchedOff(level: Int)
 
 case class LightEvt(level: Int)
 
-class DayNight(initalValue: Int) extends Actor with FSM[State, Unit] with ActorLogging {
+class DayNight() extends Actor with FSM[State, Unit] with ActorLogging {
 
   import context._
   import SoftshakeApp._
@@ -93,7 +93,7 @@ class DayNight(initalValue: Int) extends Actor with FSM[State, Unit] with ActorL
       stay
   }
 
-  when(Night, stateTimeout = 100 milliseconds) {
+  when(Night, stateTimeout = 1 seconds) {
     case Event(StateTimeout, _) => {
       goto(CheckLight)
     }
@@ -124,7 +124,7 @@ class DayNight(initalValue: Int) extends Actor with FSM[State, Unit] with ActorL
       context.actorFor(naoText) ! txt.Say("Hee, il fait nuit !")
     }
     case Night -> Day | CheckLight -> Day => {
-      context.actorFor(naoText) ! txt.Say("Haa! encore un gag a Nicolas!")
+      context.actorFor(naoText) ! txt.Say("aaaa! encore un gag a Nicolas!")
     }
     case Night -> CheckLight | CheckLight -> Night => {
       val future = ask(context.actorFor(naoMemory), memory.DataInMemoryAsString("DarknessDetection/DarknessValue"))(5 seconds).mapTo[Int]
@@ -183,24 +183,18 @@ object SoftshakeApp {
     /**
      * Subscribe to event and use a state Machine to handle it
      */
-    val darknessFuture = softApp.naoMemoryActor ? memory.DataInMemoryAsString("DarknessDetection/DarknessValue") // Call to get a value
-    val subscribeFuture = softApp.naoEvtActor ? tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator) // Subscribe to an event
+    softApp.naoEvtActor ? tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator) // Subscribe to an event
 
-    /**
-     * Comprehensive for to create a "Workflow" (could be done with nested map and flatMap)
-     */
-    for {
-      currentBright ← darknessFuture.mapTo[Int]
-      subscribed ← subscribeFuture.mapTo[EventSubscribed]
-    } yield {
-      softApp.naoTxtActor ! txt.Say(s"Voila! l'evenement est initialisé! avec une luminosité de $currentBright sur cent")
-    }
+
 
     /**
      * Sample call
      */
     def count() {
-      (1 to 10).foreach(x => softApp.naoTxtActor ! txt.Say(x.toString))
+      (1 to 10).foreach(x => {
+        println(x)
+        softApp.naoTxtActor ! txt.Say(x.toString)
+      })
     }
 
     /**
