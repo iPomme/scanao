@@ -21,11 +21,11 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{DeadLetter, _}
 import akka.kernel.Bootable
-import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Future => AldeFuture, Object => AldeObject, QimessagingService, Session}
+import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Object => AldeObject, QimessagingService, Session}
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg.tech._
 
-import scala.collection.mutable.{HashMap, MultiMap, Set}
+import scala.collection.mutable
 import scala.concurrent.duration._
 
 
@@ -45,19 +45,16 @@ class NaoSupervisor extends Actor with ActorLogging {
   }
 
   def receive = {
-    case msg@PrintDebug => {
+    case msg@PrintDebug =>
       val children = context.children.foldLeft("")((b, ref) => s"$b,$ref")
       log.debug(s"About to send 'printDebug' to $children")
       context.actorSelection("*").forward(msg)
-    }
-    case msg@PrintMap => {
+    case msg@PrintMap =>
       val children = context.children.foldLeft("")((b, ref) => s"$b,$ref")
       log.debug(s"About to send 'printMap' to all the $children")
       context.actorSelection("*").forward(msg)
-    }
-    case _@msg => {
+    case _@msg =>
       log.info(s"${this.getClass.getName} received: $msg")
-    }
   }
 
 
@@ -95,12 +92,10 @@ class SNCmdManagementActor extends Actor with ActorLogging {
 
 
   def receive = {
-    case PrintDebug => {
+    case PrintDebug =>
       log.info(context.children.foldLeft("Command Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
-    }
-    case _@msg => {
+    case _@msg =>
       log.info(s"${this.getClass.getName} received: $msg")
-    }
   }
 
 }
@@ -117,7 +112,7 @@ class SNEvtManagementActor extends Actor with ActorLogging {
 
   import io.nao.scanao.srv.NaoServer._
 
-  var subscriber = new HashMap[String, Set[ActorRef]] with MultiMap[String, ActorRef]
+  var subscriber = new mutable.HashMap[String, mutable.Set[ActorRef]] with mutable.MultiMap[String, ActorRef]
 
 
   override def preStart() {
@@ -134,14 +129,14 @@ class SNEvtManagementActor extends Actor with ActorLogging {
     val fut = session.connect(NaoSupervisor.address)
     fut.synchronized(fut.wait(TIMEOUT_IN_MILLIS))
     session.registerService("SNEvents", theObject)
-    log.info(s"Service ${eventService.getClass().getName()} registered")
+    log.info(s"Service ${eventService.getClass.getName} registered")
     log.info(s"connected to: $NaoSupervisor.address")
     log.info("Event manager Initalized.")
     log.debug(context.children.foldLeft("Event Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
   }
 
   def receive = {
-    case SubscribeEvent(event, module, method, callback) => {
+    case SubscribeEvent(event, module, method, callback) =>
       // Register call back function
       try {
         val sessionReg = new Session()
@@ -156,17 +151,15 @@ class SNEvtManagementActor extends Actor with ActorLogging {
 
         memory.call("subscribeToEvent", event, module, method)
         log.info(s"Subscribed to $event , event redirected to the module: $module method: $method")
-        sessionReg.close
+        sessionReg.close()
         subscriber addBinding(event, callback)
         context.watch(callback)
-        log.info(s"I'm watching $sender ...")
+        log.info(s"I'm watching ${sender()} ...")
         sender ! EventSubscribed(event, module, method)
       } catch {
         case ex: Exception => ex.printStackTrace()
       }
-
-    }
-    case UnsubscribeEvent(event, module) => {
+    case UnsubscribeEvent(event, module) =>
       try {
         val sessionReg = new Session()
         log.info("Get a new Session and try to connect to the local server...")
@@ -180,36 +173,30 @@ class SNEvtManagementActor extends Actor with ActorLogging {
 
         memory.call("unsubscribeToEvent", event, module)
         log.info(s"unsubscribed to $event , event redirected to the module: $module")
-        sessionReg.close
-        subscriber removeBinding(event, sender)
+        sessionReg.close()
+        subscriber removeBinding(event, sender())
 
       } catch {
         case ex: Exception => ex.printStackTrace()
       }
-    }
-    case Terminated(who) => {
+    case Terminated(who) =>
       log.info(s"The actor $who has been terminated")
       // Remove the ActorRef from all the list of ActorRef. First get all the keys and then remove it
       subscriber.filter(t => t._2.contains(who)).foreach(t => subscriber.removeBinding(t._1, who))
-    }
-    case PrintMap => {
+    case PrintMap =>
       log.info(s"The internal map is $subscriber")
-    }
-    case PrintDebug => {
+    case PrintDebug =>
       log.info(context.children.foldLeft("Event Manager registered these paths :\n")((b, ref) => s"$b\t$ref\n"))
-    }
-    case "kill" => {
-      log.info(s" $sender killed")
-    }
-    case _@msg => {
+    case "kill" =>
+      log.info(s" ${sender()} killed")
+    case _@msg =>
       log.info(s"${this.getClass.getName} received: $msg")
-    }
   }
 
   def event(key: java.lang.Object, values: java.lang.Object, msg: java.lang.Object): java.lang.Object = {
     try {
       log.debug(s"event: $key / values: ${values.toString} / message: ${msg.toString}")
-      subscriber.getOrElse(key.toString, Set.empty).foreach(_ ! NaoEvent(key.toString, values, msg.toString))
+      subscriber.getOrElse(key.toString, mutable.Set.empty).foreach(_ ! NaoEvent(key.toString, values, msg.toString))
     } catch {
       case e: Exception => e.printStackTrace()
     }
