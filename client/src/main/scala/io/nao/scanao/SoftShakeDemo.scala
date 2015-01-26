@@ -18,44 +18,25 @@
 package io.nao.scanao
 
 import akka.actor._
-import akka.kernel.Bootable
 import akka.pattern.ask
-import akka.pattern.pipe
 import akka.util.Timeout
-import scala.concurrent.{Future, Promise, Await}
-import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg._
-import io.nao.scanao.msg.tech.{NaoEvent, EventSubscribed}
-import scala.util.Success
-import io.nao.scanao.msg.txt.Say
-import io.nao.scanao.msg.tech.EventSubscribed
-import scala.util.Success
 import io.nao.scanao.msg.tech.NaoEvent
-import io.nao.scanao.msg.txt.Say
-import scala.collection.mutable.{MultiMap, Set, HashMap}
-import java.util.concurrent.TimeUnit
-import concurrent.ExecutionContext.Implicits.global
+
+import scala.collection.immutable.HashMap
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.StdIn
 
 
 class SoftshakeDemo {
 
-  import SoftshakeApp._
-
   val system = ActorSystem("softshake", ConfigFactory.load.getConfig("softshake_client"))
 
 
+  // create the actors for the demo
   val mediator = system.actorOf(Props[SoftshakeMediator], "mediator")
-  val fsmDayNightActor = system.actorOf(Props[DayNight], "daynight")
-  val naoTxtActor = system.actorFor(naoText)
-  val naoEvtActor = system.actorFor(naoEvt)
-  val naoCmdActor = system.actorFor(naoCmd)
-  val naoMemoryActor = system.actorFor(naoMemory)
-  val naoBehaviorActor = system.actorFor(naoBehavior)
-
-  def startup() = {
-
-  }
 
   def shutdown() = {
     system.shutdown()
@@ -65,17 +46,19 @@ class SoftshakeDemo {
 sealed trait State
 
 object Day extends State
+
 object Night extends State
+
 object CheckLight extends State
 
-case class LightSwitchedOff(level: Int)
+
+case class LightSwitchedOff(level: Int, naoActors: HashMap[String, Option[ActorRef]])
 
 case class LightEvt(level: Int)
 
-class DayNight() extends Actor with FSM[State, Unit] with ActorLogging {
+class DayNight(val naoRefs: HashMap[String, Option[ActorRef]]) extends Actor with FSM[State, Unit] with ActorLogging {
 
-  import context._
-  import SoftshakeApp._
+  import io.nao.scanao.SoftshakeApp._
 
   implicit val timeout = Timeout(5 seconds)
 
@@ -121,13 +104,13 @@ class DayNight() extends Actor with FSM[State, Unit] with ActorLogging {
 
   onTransition {
     case Day -> Night => {
-      context.actorFor(naoText) ! txt.Say("Hee, il fait nuit !")
+      naoRefs(naoText).map(_ ! txt.Say("Hee, il fait nuit !"))
     }
     case Night -> Day | CheckLight -> Day => {
-      context.actorFor(naoText) ! txt.Say("aaaa! encore un gag a Nicolas!")
+      naoRefs(naoText).map(_ ! txt.Say("aaaa! encore un gag a Nicolas!"))
     }
     case Night -> CheckLight | CheckLight -> Night => {
-      val future = ask(context.actorFor(naoMemory), memory.DataInMemoryAsString("DarknessDetection/DarknessValue"))(5 seconds).mapTo[Int]
+      val future = ask(naoRefs(naoMemory).get, memory.DataInMemoryAsString("DarknessDetection/DarknessValue")).mapTo[Int]
       val newLight = Await.result(future, 10 seconds)
       log.info(s"Got a new Light value of $newLight")
       self ! LightEvt(newLight)
@@ -138,25 +121,95 @@ class DayNight() extends Actor with FSM[State, Unit] with ActorLogging {
   initialize
 }
 
+sealed trait InitState
+
+object Initializing extends InitState
+
+object Initialized extends InitState
+
+case class References(queue: scala.collection.immutable.HashMap[String, Option[ActorRef]])
+
 /**
- * Actor used to reveive event from Nao
+ * Actor used to do mediation between Nao and the client.
+ * The initialization is based on a state machine,
+ * this is due to the fact that the server needs to initialize a JNI connection with the robot and this initialization is taking time.
+ * Notice that all the messages received before initialisation would be stach and replay once the robot is ready.
  */
-class SoftshakeMediator extends Actor with ActorLogging {
+class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash with ActorLogging {
 
-  import SoftshakeApp._
+  import io.nao.scanao.SoftshakeApp._
 
-  implicit val timeout = Timeout(10 seconds)
+  var fsmDayNightActor: ActorRef = _
 
-  def receive = {
-    case NaoEvent(eventName, values, message) => {
+  def listActorRef = {
+    // Get the reference to the Nao actors
+    HashMap.empty[String, Option[ActorRef]] + ((naoEvt, None)) + ((naoCmd, None)) + ((naoText, None)) + ((naoMemory, None)) + ((naoBehavior, None))
+  }
+
+  def identifyActors(id: String): Unit = {
+    log.info(s"Send the identify message to $id")
+    context.actorSelection(id) ! Identify(id)
+  }
+
+  // Send the Identity to all the references needed
+  listActorRef.foreach { case (id, ref) => identifyActors(id)}
+
+  // Set the initial state with the list of refs needed, note that at this point all the ActorRef should be set to None
+  startWith(Initializing, References(listActorRef))
+
+  when(Initializing) {
+    case Event(ActorIdentity(id, ref@Some(_)), a@References(q)) =>
+      log.info(s"Got the reference to $id !!")
+      log.debug(s"The current missing remote reference is ${q.filter(_._2 == None)}")
+      val uptQueue = q + ((id.toString(), ref))
+      if (uptQueue.values.exists(_ == None))
+      // Some remote references are missing, stay in this state till everything initialized
+        stay using a.copy(uptQueue)
+      else
+      // All the remote references has been resolved, move to the initialized state.
+        goto(Initialized) using a.copy(uptQueue)
+    case Event(ActorIdentity(id, None), a) =>
+      log.error(s"Impossible to get the reference to $id")
+      context.stop(self)
+      stay
+
+    case Event(m@_, References(h)) =>
+      stash()
+      log.info(s"Message $m stached as still initializing")
+      stay
+    //TODO: Manage to watch all the remote references.
+  }
+
+  when(Initialized) {
+    case Event(m: txt.Say, References(h)) =>
+      log.info(s"Got the message $m to send to ${h(naoText)}")
+      h(naoText).map(_ ! m)
+      stay
+    case Event(m: tech.SubscribeEvent, References(h)) =>
+      log.info(s"Got the message $m to send to ${h(naoText)}")
+      h(naoEvt).map(_ ! m)
+      stay
+    case Event(m@tech.EventSubscribed(name, module, method), References(h)) =>
+      log.info(s"Subscribed to $m")
+      h(naoText).map(_ ! txt.Say("Je suis pret"))
+      stay
+    case Event(NaoEvent(eventName, values, message), References(h)) =>
       log.info(s"received NaoEvent name: $eventName values: $values message: $message")
       // Send the LightSwitchedOff to the State Machine
       if (eventName.startsWith("DarknessDetection"))
-        context.actorFor("/user/daynight") ! LightSwitchedOff(values.toString.toInt)
+        fsmDayNightActor ! LightSwitchedOff(values.toString.toInt, h)
+      stay
+    case Event(m@_, References(h)) =>
+      log.info(s"UNKNOWN MESSAGE: $m")
+      stay
+  }
+  onTransition {
+    case Initializing -> Initialized => {
+      log.info("Transition to Initialized, unstash the messages ...")
+      fsmDayNightActor = context.actorOf(Props(classOf[DayNight], nextStateData.queue), "daynight")
+      unstashAll()
     }
-    case msg@_ => {
-      log.info(s"UNKNOWN MESSAGE: $msg")
-    }
+
   }
 }
 
@@ -164,7 +217,6 @@ class SoftshakeMediator extends Actor with ActorLogging {
  * Entry point of the demonstration
  */
 object SoftshakeApp {
-  implicit val timeout = Timeout(10 seconds)
 
   val robotIP = "sonny.local"
   val robotPort = "2552"
@@ -176,24 +228,34 @@ object SoftshakeApp {
   val naoBehavior = s"$remoteAkkaContext/user/nao/cmd/behavior"
 
   def main(args: Array[String]) {
+    /**
+     * Create the demo instance and initialize all the local actors
+     * Return event if the remote actors are not finished to be initialized
+     */
     val softApp = new SoftshakeDemo
 
-    softApp.naoTxtActor ! txt.Say(s"C'est partit pour la démo, pourvu que ca marche !")
+    /**
+     * Thanks to the initialization, all the messages would be stached if the robot is not ready
+     */
+
+    /**
+     * Inform that the demo is ready to start
+     */
+    softApp.mediator ! txt.Say(s"C'est partit pour la démo, pourvu que ca marche ! Je te dis des que je suis pret ...")
 
     /**
      * Subscribe to event and use a state Machine to handle it
      */
-    softApp.naoEvtActor ? tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator) // Subscribe to an event
-
+    softApp.mediator ! tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", softApp.mediator) // Subscribe to an event
 
 
     /**
      * Sample call
      */
-    def count() {
-      (1 to 10).foreach(x => {
+    def count(nb: Int) {
+      (1 to nb).foreach(x => {
         println(x)
-        softApp.naoTxtActor ! txt.Say(x.toString)
+        softApp.mediator ! txt.Say(x.toString)
       })
     }
 
@@ -202,20 +264,22 @@ object SoftshakeApp {
      */
     println("Type 'exit' to finish")
 
-    def demoCases(cmd: String) = cmd match {
-      case "count" => count()
-      case "help" | "?" => println(
+    def demoCases(cmd: List[String]) = cmd match {
+      case "count" :: Nil => count(10)
+      case "count" :: nb :: Nil => count(Integer.parseInt(nb))
+      case "help" :: Nil | "?" :: Nil => println(
         """Help:
-          | count -> Nao will count from 1 to 10
+          | count [nb] -> Nao will count (from 1 to 10 if no number passed)
           | help  -> Print this help
         """.stripMargin)
       case txt@_ => println(s"you wrote: $txt")
     }
-    Iterator.continually(Console.readLine).takeWhile(_ != "exit").foreach(cmd => demoCases(cmd))
 
+    Iterator.continually(StdIn.readLine()).takeWhile(_ != "exit").foreach(cmd => demoCases(cmd.split(" ").toList))
 
     softApp.shutdown()
 
   }
+
 }
 
