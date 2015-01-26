@@ -67,58 +67,50 @@ class DayNight(val naoRefs: HashMap[String, Option[ActorRef]]) extends Actor wit
   startWith(Day, Unit)
 
   when(Day) {
-    case Event(l: LightSwitchedOff, _) => {
+    case Event(l: LightSwitchedOff, _) =>
       log.info(s"When Day received the event: $l")
       goto(Night)
-    }
     case Event(e, d) =>
       log.debug(s"--Day----------> $e , $d")
-      stay
+      stay()
   }
 
   when(Night, stateTimeout = 1 seconds) {
-    case Event(StateTimeout, _) => {
+    case Event(StateTimeout, _) =>
       goto(CheckLight)
-    }
-    case Event(l: LightEvt, _) if l.level < 60 => {
+    case Event(l: LightEvt, _) if l.level < 60 =>
       log.info(s"When Night received the event $l")
       goto(Day)
-    }
     case Event(e, d) =>
       log.debug(s"--Night--------> $e , $d")
-      stay
+      stay()
   }
 
   when(CheckLight, stateTimeout = 100 milliseconds) {
-    case Event(StateTimeout, _) => {
+    case Event(StateTimeout, _) =>
       goto(Night)
-    }
-    case Event(l: LightEvt, _) if l.level < 60 => {
+    case Event(l: LightEvt, _) if l.level < 60 =>
       log.info(s"When CheckLight received the event $l")
       goto(Day)
-    }
     case Event(e, d) =>
       log.debug(s"--CheckLight--------> $e , $d")
-      stay
+      stay()
   }
 
   onTransition {
-    case Day -> Night => {
+    case Day -> Night =>
       naoRefs(naoText).map(_ ! txt.Say("Hee, il fait nuit !"))
-    }
-    case Night -> Day | CheckLight -> Day => {
+    case Night -> Day | CheckLight -> Day =>
       naoRefs(naoText).map(_ ! txt.Say("aaaa! encore un gag a Nicolas!"))
-    }
-    case Night -> CheckLight | CheckLight -> Night => {
+    case Night -> CheckLight | CheckLight -> Night =>
       val future = ask(naoRefs(naoMemory).get, memory.DataInMemoryAsString("DarknessDetection/DarknessValue")).mapTo[Int]
       val newLight = Await.result(future, 10 seconds)
       log.info(s"Got a new Light value of $newLight")
       self ! LightEvt(newLight)
-    }
 
   }
 
-  initialize
+  initialize()
 }
 
 sealed trait InitState
@@ -161,7 +153,7 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
     case Event(ActorIdentity(id, ref@Some(_)), a@References(q)) =>
       log.info(s"Got the reference to $id !!")
       log.debug(s"The current missing remote reference is ${q.filter(_._2 == None)}")
-      val uptQueue = q + ((id.toString(), ref))
+      val uptQueue = q + ((id.toString, ref))
       if (uptQueue.values.exists(_ == None))
       // Some remote references are missing, stay in this state till everything initialized
         stay using a.copy(uptQueue)
@@ -171,12 +163,12 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
     case Event(ActorIdentity(id, None), a) =>
       log.error(s"Impossible to get the reference to $id")
       context.stop(self)
-      stay
+      stay()
 
     case Event(m@_, References(h)) =>
       stash()
       log.info(s"Message $m stached as still initializing")
-      stay
+      stay()
     //TODO: Manage to watch all the remote references.
   }
 
@@ -184,31 +176,30 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
     case Event(m: txt.Say, References(h)) =>
       log.info(s"Got the message $m to send to ${h(naoText)}")
       h(naoText).map(_ ! m)
-      stay
+      stay()
     case Event(m: tech.SubscribeEvent, References(h)) =>
       log.info(s"Got the message $m to send to ${h(naoText)}")
       h(naoEvt).map(_ ! m)
-      stay
+      stay()
     case Event(m@tech.EventSubscribed(name, module, method), References(h)) =>
       log.info(s"Subscribed to $m")
       h(naoText).map(_ ! txt.Say("Je suis pret"))
-      stay
+      stay()
     case Event(NaoEvent(eventName, values, message), References(h)) =>
       log.info(s"received NaoEvent name: $eventName values: $values message: $message")
       // Send the LightSwitchedOff to the State Machine
       if (eventName.startsWith("DarknessDetection"))
         fsmDayNightActor ! LightSwitchedOff(values.toString.toInt, h)
-      stay
+      stay()
     case Event(m@_, References(h)) =>
       log.info(s"UNKNOWN MESSAGE: $m")
-      stay
+      stay()
   }
   onTransition {
-    case Initializing -> Initialized => {
+    case Initializing -> Initialized =>
       log.info("Transition to Initialized, unstash the messages ...")
       fsmDayNightActor = context.actorOf(Props(classOf[DayNight], nextStateData.queue), "daynight")
       unstashAll()
-    }
 
   }
 }
