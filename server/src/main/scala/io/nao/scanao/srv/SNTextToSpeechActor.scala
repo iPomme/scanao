@@ -19,11 +19,12 @@ package io.nao.scanao.srv
 
 import akka.actor.{Props, ActorLogging, Actor}
 import com.aldebaran.qimessaging.Session
+import com.github.levkhomich.akka.tracing.ActorTracing
 import io.nao.scanao.msg._
 import akka.event.LoggingAdapter
 import io.nao.scanao.srv.NaoServer._
 
-class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage {
+class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage with ActorTracing {
 
   log.info("Creating instance of SNTextToSpeechActor")
   val moduleName = "ALTextToSpeech"
@@ -34,7 +35,10 @@ class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage {
       sender ! languages
     }
     case txt: txt.Say => {
+      trace.sample(txt, "Nao")
+      trace.record(txt, "Nao Say...")
       srv.call("say", txt.string)
+      trace.finish(txt)
     }
     case txt: txt.SayToFileAndPlay => {
       val taskId = srv.call("sayToFileAndPlay", txt.string).get()

@@ -1,10 +1,8 @@
 package io.nao.scanao.msg
 
-
-trait NaoMessage extends Serializable
-
 import com.github.levkhomich.akka.tracing.TracingSupport
 
+trait NaoMessage extends Serializable with TracingSupport
 
 /**
  * Object used to synchronized the Nao calls
@@ -19,17 +17,19 @@ package tech {
 
 import akka.actor.ActorRef
 
-case class SubscribeEvent(eventName: String, moduleName: String, methodName: String, callback: ActorRef) extends NaoMessage
+trait TechMessage extends NaoMessage
 
-case class EventSubscribed(eventName: String, moduleName: String, methodName: String) extends NaoMessage
+case class SubscribeEvent(eventName: String, moduleName: String, methodName: String, callback: ActorRef) extends TechMessage
 
-case class UnsubscribeEvent(eventName: String, moduleName: String) extends NaoMessage
+case class EventSubscribed(eventName: String, moduleName: String, methodName: String) extends TechMessage
 
-case class NaoEvent(eventName: String, values: Any, message: String) extends NaoMessage
+case class UnsubscribeEvent(eventName: String, moduleName: String) extends TechMessage
 
-case object PrintDebug extends NaoMessage
+case class NaoEvent(eventName: String, values: Any, message: String) extends TechMessage
 
-case object PrintMap extends NaoMessage
+case object PrintDebug extends TechMessage
+
+case object PrintMap extends TechMessage
 
 
 }
@@ -39,19 +39,21 @@ case object PrintMap extends NaoMessage
   * ********************************************/
 package audioDevice {
 
-object DisableEnergyComputation extends NaoMessage
+trait AudioMessage extends NaoMessage
 
-object EnableEnergyComputation extends NaoMessage
+object DisableEnergyComputation extends AudioMessage
 
-object FrontMicEnergy extends NaoMessage
+object EnableEnergyComputation extends AudioMessage
 
-object RearMicEnergy extends NaoMessage
+object FrontMicEnergy extends AudioMessage
 
-object LeftMicEnergy extends NaoMessage
+object RearMicEnergy extends AudioMessage
 
-object RightMicEnergy extends NaoMessage
+object LeftMicEnergy extends AudioMessage
 
-case class MicEnergyResult(value: Float)
+object RightMicEnergy extends AudioMessage
+
+case class MicEnergyResult(value: Float) extends AudioMessage
 
 }
 
@@ -60,13 +62,15 @@ case class MicEnergyResult(value: Float)
   * ********************************************/
 package behavior {
 
-case class RunBehavior(name: String)
+trait BehaviorMessage extends NaoMessage
 
-case class StopBehavior(name: String)
+case class RunBehavior(name: String) extends BehaviorMessage
 
-object BehaviorNames extends NaoMessage
+case class StopBehavior(name: String) extends BehaviorMessage
 
-case class IsBehaviorRunning(name: String)
+object BehaviorNames extends BehaviorMessage
+
+case class IsBehaviorRunning(name: String) extends BehaviorMessage
 
 }
 
@@ -75,27 +79,29 @@ case class IsBehaviorRunning(name: String)
   * ********************************************/
 package memory {
 
-object DataKeysList extends NaoMessage
+trait MemoryMessage extends NaoMessage
 
-case class Insert(key: String, value: String)
+object DataKeysList extends MemoryMessage
 
-case class DataInMemory(key: String)
+case class Insert(key: String, value: String) extends MemoryMessage
 
-case class DataInMemoryAsInt(key: String)
+case class DataInMemory(key: String) extends MemoryMessage
 
-case class DataInMemoryAsString(key: String)
+case class DataInMemoryAsInt(key: String) extends MemoryMessage
 
-case class DataInMemoryAsBoolean(key: String)
+case class DataInMemoryAsString(key: String) extends MemoryMessage
 
-case class DataInMemoryAsFloat(key: String)
+case class DataInMemoryAsBoolean(key: String) extends MemoryMessage
 
-case class DataInMemoryAsByteList(key: String)
+case class DataInMemoryAsFloat(key: String) extends MemoryMessage
 
-case class DataInMemoryAsFloatList(key: String)
+case class DataInMemoryAsByteList(key: String) extends MemoryMessage
 
-case class DataInMemoryAsIntList(key: String)
+case class DataInMemoryAsFloatList(key: String) extends MemoryMessage
 
-case class DataList(filter: String)
+case class DataInMemoryAsIntList(key: String) extends MemoryMessage
+
+case class DataList(filter: String) extends MemoryMessage
 
 }
 
@@ -108,7 +114,7 @@ package motion {
 import io.nao.scanao.msg.Hand.Hand
 import io.nao.scanao.msg.Space.Space
 
-trait MotionMessage extends TracingSupport
+trait MotionMessage extends NaoMessage
 
 case class Stiffness(joint: H25) extends MotionMessage
 
@@ -135,11 +141,13 @@ case class OpenHand(hand: Hand) extends MotionMessage
   * ********************************************/
 package robotPose {
 
-object ActualPoseAndTime extends NaoMessage
+trait PoseMessage extends NaoMessage
 
-case class Pose(name: String, since: Float)
+object ActualPoseAndTime extends PoseMessage
 
-object PosesName extends NaoMessage
+case class Pose(name: String, since: Float) extends PoseMessage
+
+object PosesName extends PoseMessage
 
 }
 
@@ -148,10 +156,12 @@ object PosesName extends NaoMessage
   * ********************************************/
 package txt {
 
-object AvailableLanguages extends NaoMessage
+trait SpeechMessage extends NaoMessage
 
-case class Say(string: String) extends NaoMessage
+object AvailableLanguages extends SpeechMessage
 
-case class SayToFileAndPlay(string: String) extends NaoMessage
+case class Say(string: String) extends SpeechMessage
+
+case class SayToFileAndPlay(string: String) extends SpeechMessage
 
 }

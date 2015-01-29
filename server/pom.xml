@@ -78,8 +78,8 @@
         <!-- tracing -->
         <dependency>
             <groupId>com.github.levkhomich</groupId>
-            <artifactId>akka-tracing-core_2.10</artifactId>
-            <version>0.4</version>
+            <artifactId>akka-tracing-core_${scala.bin}</artifactId>
+            <version>${akka.tracing.version}</version>
         </dependency>
 
     </dependencies>
