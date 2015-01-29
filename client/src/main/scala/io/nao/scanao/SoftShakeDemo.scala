@@ -20,6 +20,7 @@ package io.nao.scanao
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import com.github.levkhomich.akka.tracing.ActorTracing
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg._
 import io.nao.scanao.msg.tech.NaoEvent
@@ -119,6 +120,8 @@ object Initializing extends InitState
 
 object Initialized extends InitState
 
+object Ready extends InitState
+
 case class References(queue: scala.collection.immutable.HashMap[String, Option[ActorRef]])
 
 /**
@@ -127,7 +130,7 @@ case class References(queue: scala.collection.immutable.HashMap[String, Option[A
  * this is due to the fact that the server needs to initialize a JNI connection with the robot and this initialization is taking time.
  * Notice that all the messages received before initialisation would be stach and replay once the robot is ready.
  */
-class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash with ActorLogging {
+class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash with ActorLogging with ActorTracing {
 
   import io.nao.scanao.SoftshakeApp._
 
@@ -175,7 +178,10 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
   when(Initialized) {
     case Event(m: txt.Say, References(h)) =>
       log.info(s"Got the message $m to send to ${h(naoText)}")
+      trace.sample(m, "Nao")
+      trace.record(m, "StartSaying")
       h(naoText).map(_ ! m)
+      trace.finish(m)
       stay()
     case Event(m: tech.SubscribeEvent, References(h)) =>
       log.info(s"Got the message $m to send to ${h(naoText)}")
@@ -184,6 +190,17 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
     case Event(m@tech.EventSubscribed(name, module, method), References(h)) =>
       log.info(s"Subscribed to $m")
       h(naoText).map(_ ! txt.Say("Je suis pret"))
+      goto(Ready)
+
+  }
+
+  when(Ready) {
+    case Event(m: txt.Say, References(h)) =>
+      log.info(s"Got the message $m to send to ${h(naoText)}")
+      trace.sample(m, "Nao")
+      trace.record(m, "StartSaying")
+      h(naoText).map(_ ! m)
+      trace.finish(m)
       stay()
     case Event(NaoEvent(eventName, values, message), References(h)) =>
       log.info(s"received NaoEvent name: $eventName values: $values message: $message")
@@ -195,11 +212,16 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
       log.info(s"UNKNOWN MESSAGE: $m")
       stay()
   }
+
   onTransition {
     case Initializing -> Initialized =>
       log.info("Transition to Initialized, unstash the messages ...")
       fsmDayNightActor = context.actorOf(Props(classOf[DayNight], nextStateData.queue), "daynight")
       unstashAll()
+    case Initialized -> Ready =>
+      log.info("Transition to Ready")
+
+
 
   }
 }

@@ -21,6 +21,7 @@
         <scala.version>2.11.4</scala.version>
         <scala.bin>2.11</scala.bin>
         <akka.version>2.3.8</akka.version>
+        <akka.tracing.version>0.4</akka.tracing.version>
         <!-- Testing framework -->
         <junit.version>4.12</junit.version>
         <scalatest.artifiactId>scalatest</scalatest.artifiactId>
