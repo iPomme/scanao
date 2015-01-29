@@ -21,11 +21,11 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{DeadLetter, _}
 import akka.kernel.Bootable
-import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Object => AldeObject, QimessagingService, Session}
+import com.aldebaran.qimessaging.{Application => AldeApplication, DynamicObjectBuilder, Future => AldeFuture, Object => AldeObject, QimessagingService, Session}
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg.tech._
 
-import scala.collection.mutable
+import scala.collection.mutable.{HashMap, MultiMap, Set}
 import scala.concurrent.duration._
 
 
@@ -112,7 +112,7 @@ class SNEvtManagementActor extends Actor with ActorLogging {
 
   import io.nao.scanao.srv.NaoServer._
 
-  var subscriber = new mutable.HashMap[String, mutable.Set[ActorRef]] with mutable.MultiMap[String, ActorRef]
+  var subscriber = new HashMap[String, Set[ActorRef]] with MultiMap[String, ActorRef]
 
 
   override def preStart() {
@@ -196,7 +196,7 @@ class SNEvtManagementActor extends Actor with ActorLogging {
   def event(key: java.lang.Object, values: java.lang.Object, msg: java.lang.Object): java.lang.Object = {
     try {
       log.debug(s"event: $key / values: ${values.toString} / message: ${msg.toString}")
-      subscriber.getOrElse(key.toString, mutable.Set.empty).foreach(_ ! NaoEvent(key.toString, values, msg.toString))
+      subscriber.getOrElse(key.toString, Set.empty).foreach(_ ! NaoEvent(key.toString, values, msg.toString))
     } catch {
       case e: Exception => e.printStackTrace()
     }
