@@ -3,32 +3,13 @@ package io.nao.scanao.msg
 
 trait NaoMessage extends Serializable
 
+import com.github.levkhomich.akka.tracing.TracingSupport
+
+
 /**
  * Object used to synchronized the Nao calls
  */
 object Done extends NaoMessage
-
-/** *******************************************
-  * Technical messages
-  * ********************************************/
-
-package tech {
-
-import akka.actor.ActorRef
-
-case class SubscribeEvent(eventName: String, moduleName: String, methodName: String, callback: ActorRef) extends NaoMessage
-
-case class EventSubscribed(eventName: String, moduleName: String, methodName: String) extends NaoMessage
-
-case class UnsubscribeEvent(eventName: String, moduleName: String) extends NaoMessage
-
-case class NaoEvent(eventName: String, values: Any, message: String) extends NaoMessage
-
-case object PrintDebug extends NaoMessage
-
-case object PrintMap extends NaoMessage
-
-}
 
 /** *******************************************
   * Audio
@@ -104,23 +85,25 @@ package motion {
 import io.nao.scanao.msg.Hand.Hand
 import io.nao.scanao.msg.Space.Space
 
-case class Stiffness(joint: H25)
+trait MotionMessage extends TracingSupport
 
-case class AngleInterpolation(joints: List[Joint], absolute: Boolean)
+case class Stiffness(joint: H25) extends MotionMessage
 
-case class AngleInterpolationBezier(joints: List[Joint])
+case class AngleInterpolation(joints: List[Joint], absolute: Boolean) extends MotionMessage
 
-case class AngleInterpolationWithSpeed(joints: List[Joint], maxSpeed: Float)
+case class AngleInterpolationBezier(joints: List[Joint]) extends MotionMessage
 
-case class AreResourcesAvailable(resourceNames: List[Joint])
+case class AngleInterpolationWithSpeed(joints: List[Joint], maxSpeed: Float) extends MotionMessage
 
-case class ChangeAngles(joints: List[Joint], maxSpeed: Float)
+case class AreResourcesAvailable(resourceNames: List[Joint]) extends MotionMessage
 
-case class ChangePosition(effectorName: Effector, space: Space, fractionMaxSpeed: Float)
+case class ChangeAngles(joints: List[Joint], maxSpeed: Float) extends MotionMessage
 
-case class CloseHand(hand: Hand)
+case class ChangePosition(effectorName: Effector, space: Space, fractionMaxSpeed: Float) extends MotionMessage
 
-case class OpenHand(hand: Hand)
+case class CloseHand(hand: Hand) extends MotionMessage
+
+case class OpenHand(hand: Hand) extends MotionMessage
 
 }
 

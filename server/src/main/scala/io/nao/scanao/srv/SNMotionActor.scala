@@ -19,12 +19,13 @@ package io.nao.scanao.srv
 
 import akka.actor.{Props, ActorLogging, Actor}
 import io.nao.scanao.msg.motion.{Stiffness, OpenHand, CloseHand}
+import com.github.levkhomich.akka.tracing.ActorTracing
 
 /**
  * This package is used for syntactic sugar when sending a message to thi Actor
  */
 
-class SNMotionActor extends Actor with ActorLogging with SNQIMessage {
+class SNMotionActor extends Actor with ActorLogging with SNQIMessage with ActorTracing {
 
   log.info("Creating instance of SNMemoryActor")
 

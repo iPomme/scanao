@@ -74,6 +74,14 @@
             <groupId>org.scalatest</groupId>
             <artifactId>${scalatest.artifiactId}_${scala.bin}</artifactId>
         </dependency>
+
+        <!-- tracing -->
+        <dependency>
+            <groupId>com.github.levkhomich</groupId>
+            <artifactId>akka-tracing-core_2.10</artifactId>
+            <version>0.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>
