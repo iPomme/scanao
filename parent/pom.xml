@@ -137,7 +137,6 @@
                         <doUpdate>false</doUpdate>
                     </configuration>
                 </plugin>
-
                 <!-- tests execution -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
