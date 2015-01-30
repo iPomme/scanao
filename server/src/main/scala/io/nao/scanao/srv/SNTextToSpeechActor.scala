@@ -35,7 +35,7 @@ class SNTextToSpeechActor extends Actor with ActorLogging with SNQIMessage with 
       sender ! languages
     }
     case txt: txt.Say => {
-      trace.sample(txt, "Nao")
+      trace.sample(txt, "NaoServer")
       trace.record(txt, "Nao Say...")
       srv.call("say", txt.string)
       trace.finish(txt)

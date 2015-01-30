@@ -175,13 +175,23 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
     //TODO: Manage to watch all the remote references.
   }
 
+  def traceSay(msg: txt.Say)(send: => Unit) {
+    trace.sample(msg, "NaoClient")
+    trace.record(msg, "Send Saying event")
+    send
+    trace.finish(msg)
+  }
+
+  def sendSay(msg: txt.Say, ref: HashMap[String, Option[ActorRef]]) {
+    log.info(s"Got the message $msg to send to ${ref(naoText)}")
+    traceSay(msg) {
+      ref(naoText).get ! msg
+    }
+  }
+
   when(Initialized) {
     case Event(m: txt.Say, References(h)) =>
-      log.info(s"Got the message $m to send to ${h(naoText)}")
-      trace.sample(m, "Nao")
-      trace.record(m, "StartSaying")
-      h(naoText).map(_ ! m)
-      trace.finish(m)
+      sendSay(m, h)
       stay()
     case Event(m: tech.SubscribeEvent, References(h)) =>
       log.info(s"Got the message $m to send to ${h(naoText)}")
@@ -196,11 +206,7 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
 
   when(Ready) {
     case Event(m: txt.Say, References(h)) =>
-      log.info(s"Got the message $m to send to ${h(naoText)}")
-      trace.sample(m, "Nao")
-      trace.record(m, "StartSaying")
-      h(naoText).map(_ ! m)
-      trace.finish(m)
+      sendSay(m, h)
       stay()
     case Event(NaoEvent(eventName, values, message), References(h)) =>
       log.info(s"received NaoEvent name: $eventName values: $values message: $message")
@@ -220,7 +226,6 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
       unstashAll()
     case Initialized -> Ready =>
       log.info("Transition to Ready")
-
 
 
   }
