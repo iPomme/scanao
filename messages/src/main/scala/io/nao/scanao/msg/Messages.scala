@@ -1,8 +1,10 @@
 package io.nao.scanao.msg
 
-import com.github.levkhomich.akka.tracing.TracingSupport
+//import com.github.levkhomich.akka.tracing.TracingSupport
 
-trait NaoMessage extends Serializable with TracingSupport
+trait NaoMessage extends Serializable
+
+//with TracingSupport
 
 /**
  * Object used to synchronized the Nao calls

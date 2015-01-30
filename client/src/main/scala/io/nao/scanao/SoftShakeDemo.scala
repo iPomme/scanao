@@ -282,7 +282,7 @@ object SoftshakeApp {
      */
     println("Type 'exit' to finish")
 
-    def demoCases(cmd: List[String]) = cmd match {
+    def demoCases(cmd: List[String]) = cmd.map(_.toLowerCase) match {
       case "count" :: Nil => count(10)
       case "count" :: nb :: Nil => count(Integer.parseInt(nb))
       case "help" :: Nil | "?" :: Nil => println(
