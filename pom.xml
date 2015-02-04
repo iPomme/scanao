@@ -11,5 +11,8 @@
     <module>server</module>
     <module>client</module>
     <module>messages</module>
+    <module>softshakeAPI</module>
+    <module>softshakeDemo</module>
+    <module>softshakeCMD</module>
   </modules>
 </project>
