@@ -20,7 +20,8 @@ package io.nao.scanao
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import com.github.levkhomich.akka.tracing.ActorTracing
+
+//import com.github.levkhomich.akka.tracing.ActorTracing
 import com.typesafe.config.ConfigFactory
 import io.nao.scanao.msg._
 import io.nao.scanao.msg.tech.NaoEvent
@@ -130,7 +131,8 @@ case class References(queue: scala.collection.immutable.HashMap[String, Option[A
  * this is due to the fact that the server needs to initialize a JNI connection with the robot and this initialization is taking time.
  * Notice that all the messages received before initialisation would be stach and replay once the robot is ready.
  */
-class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash with ActorLogging with ActorTracing {
+class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash with ActorLogging {
+  //with ActorTracing {
 
   import io.nao.scanao.SoftshakeApp._
 
@@ -176,10 +178,10 @@ class SoftshakeMediator extends Actor with FSM[InitState, References] with Stash
   }
 
   def traceSay(msg: txt.Say)(send: => Unit) {
-    trace.sample(msg, "NaoClient")
-    trace.record(msg, "Send Saying event")
+    //    trace.sample(msg, "NaoClient")
+    //    trace.record(msg, "Send Saying event")
     send
-    trace.finish(msg)
+    //    trace.finish(msg)
   }
 
   def sendSay(msg: txt.Say, ref: HashMap[String, Option[ActorRef]]) {
