@@ -9,5 +9,7 @@ trait SoftShakeService {
 
   def stop()
 
+  def state()
+
   def count(to: Int)
 }

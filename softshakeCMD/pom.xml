@@ -61,7 +61,7 @@
                                 <Bundle-Name>${project.name}</Bundle-Name>
                                 <Bundle-Version>${project.version}</Bundle-Version>
                                 <Implementation-Build>${buildNumber}</Implementation-Build>
-                                <Private-Package>io.nao.softshake.cmd</Private-Package>
+                                <Export-Package/>
                             </instructions>
                         </configuration>
 

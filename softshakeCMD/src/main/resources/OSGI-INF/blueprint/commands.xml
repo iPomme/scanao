@@ -19,7 +19,7 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
         <command name="nao/softshakeDemo">
-            <action class="io.softshake.cmd.SoftShakeCommands">
+            <action class="io.nao.softshake.cmd.SoftShakeCommands">
             </action>
         </command>
     </command-bundle>
