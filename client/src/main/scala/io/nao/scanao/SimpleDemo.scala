@@ -61,14 +61,14 @@ class DemoActor(subscription: Promise[String]) extends Actor with ActorLogging {
   def receive = {
     case "register" => {
       log.info("registering events ...")
-//      naoEvtActor ! tech.SubscribeEvent("ALTextToSpeech/TextStarted", "SNEvents", "event", self)
+      //      naoEvtActor ! tech.SubscribeEvent("ALTextToSpeech/TextStarted", "SNEvents", "event", self)
       val future: Future[EventSubscribed] = (naoEvtActor ? tech.SubscribeEvent("ALTextToSpeech/TextStarted", "SNEvents", "event", self))(Timeout(10, TimeUnit.SECONDS)).mapTo[EventSubscribed]
-//      val returned = Await.result(future, scala.concurrent.duration.Duration.Inf)
-//      log.info(returned.toString)
+      //      val returned = Await.result(future, scala.concurrent.duration.Duration.Inf)
+      //      log.info(returned.toString)
       log.info("Return back the future....")
       sender ! future
-//      naoEvtActor ! tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", self)
-//      naoEvtActor ! tech.SubscribeEvent("BacklightingDetection/BacklightingDetected", "SNEvents", "event")
+      //      naoEvtActor ! tech.SubscribeEvent("DarknessDetection/DarknessDetected", "SNEvents", "event", self)
+      //      naoEvtActor ! tech.SubscribeEvent("BacklightingDetection/BacklightingDetected", "SNEvents", "event")
     }
     case EventSubscribed(eventName, values, message) => {
       if (eventName.startsWith("DarknessDetection"))
@@ -120,24 +120,24 @@ class SimpleDemo extends Bootable {
   val future = promise.future
   val naoProxy = system.actorOf(Props(new DemoActor(promise)), name = "simpleDemo")
 
-  def registerEvent() : Future[tech.EventSubscribed] = {
-    val fut = (naoProxy ? "register") (Timeout(20, TimeUnit.SECONDS))
+  def registerEvent(): Future[tech.EventSubscribed] = {
+    val fut = (naoProxy ? "register")(Timeout(20, TimeUnit.SECONDS))
     system.log.info("GOT the future from the nao Proxy !!!")
     fut.mapTo[tech.EventSubscribed]
-//    import concurrent.ExecutionContext.Implicits.global
-//
-//    future.onComplete {
-//      case Success(text) =>
-//        text
-//      case Failure(ex) =>
-//        throw ex
-//    }
-//    val result = Await.result(future, TIMEOUT_DEFAULT)
-//    system.log.info(s" registerEvent exit with $result registered")
+    //    import concurrent.ExecutionContext.Implicits.global
+    //
+    //    future.onComplete {
+    //      case Success(text) =>
+    //        text
+    //      case Failure(ex) =>
+    //        throw ex
+    //    }
+    //    val result = Await.result(future, TIMEOUT_DEFAULT)
+    //    system.log.info(s" registerEvent exit with $result registered")
   }
 
-  def regEvent(){
-//    implicit val executor = system.dispatcher
+  def regEvent() {
+    //    implicit val executor = system.dispatcher
     val ringFuture = registerEvent()
     ringFuture map { event =>
       println(s" ********** $event")
@@ -185,28 +185,28 @@ object SimpleApp {
 
   def main(args: Array[String]) {
     val demo = new SimpleDemo
-//    println("Started Simple Demo")
-//    demo.regEvent()
-//    demo.say("bobo")
-//    waitFor(2000)
-//    val listOfKey = demo.getListKeysInMemory()
-//    println(s"list of memory keys is :\n$listOfKey ")
-//    val key = "thisIs"
-//    val valueBefore = demo.getValueInMemory(key)
-//    println(s"Got in memory before to write for the key '$key' the value $valueBefore")
-//    val (writeTime, dummy) = time {
-//      demo.writeToMemory(key, Random.nextInt(100))
-//    }
-//    println(s"took $writeTime to write in memory")
-//    waitFor(1000)
-//    val (readTime, valueAfter) = time {
-//      demo.getValueInMemory(key)
-//    }
-//    println(s"Got in memory after write for the key '$key' the value $valueAfter")
-//    println(s"took $readTime to read from memory")
-//    val keyArray = "ALTextToSpeech/Status" // VisualSpaceHistory/VisualGrid/Data"
-//    val mixedArray = demo.getValueInMemoryAsString(keyArray)
-//    println(s"The memory with key $keyArray is ${mixedArray}")
+    //    println("Started Simple Demo")
+    //    demo.regEvent()
+    //    demo.say("bobo")
+    //    waitFor(2000)
+    //    val listOfKey = demo.getListKeysInMemory()
+    //    println(s"list of memory keys is :\n$listOfKey ")
+    //    val key = "thisIs"
+    //    val valueBefore = demo.getValueInMemory(key)
+    //    println(s"Got in memory before to write for the key '$key' the value $valueBefore")
+    //    val (writeTime, dummy) = time {
+    //      demo.writeToMemory(key, Random.nextInt(100))
+    //    }
+    //    println(s"took $writeTime to write in memory")
+    //    waitFor(1000)
+    //    val (readTime, valueAfter) = time {
+    //      demo.getValueInMemory(key)
+    //    }
+    //    println(s"Got in memory after write for the key '$key' the value $valueAfter")
+    //    println(s"took $readTime to read from memory")
+    //    val keyArray = "ALTextToSpeech/Status" // VisualSpaceHistory/VisualGrid/Data"
+    //    val mixedArray = demo.getValueInMemoryAsString(keyArray)
+    //    println(s"The memory with key $keyArray is ${mixedArray}")
 
     println(s"List of all behavior is: /n ${demo.getBehaviorList()}")
 
