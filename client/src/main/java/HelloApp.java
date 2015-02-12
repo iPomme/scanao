@@ -1,4 +1,4 @@
-package io.nao.scanao.srv;/*
+/*
  * -----------------------------------------------------------------------------
  *  - ScaNao is an open-source enabling Nao's control from Scala code.            -
  *  - At the low level jNaoqi is used to bridge the C++ code with the JVM.        -
@@ -15,28 +15,29 @@ package io.nao.scanao.srv;/*
  *  -----------------------------------------------------------------------------
  */
 
-import com.aldebaran.qimessaging.Application;
-import com.aldebaran.qimessaging.Future;
-import com.aldebaran.qimessaging.Session;
-
-public class TestServiceTest {
-
-    public static void main(String[] args) {
-        try{
+import com.aldebaran.qimessaging.*;
+import com.aldebaran.qimessaging.Object;
+public class HelloApp
+{
+    public static void main(String[] args) throws Exception {
         Application app = new Application(args);
+        String address = "tcp://0.0.0.0:9559";
         Session session = new Session();
-        Future<Void> fut = session.connect("tcp://192.168.2.104:9559");
+        QimessagingService service = new HelloService();
+        DynamicObjectBuilder objectBuilder = new DynamicObjectBuilder();
+        objectBuilder.advertiseMethod("greet::s(s)", service, "Greet the caller");
+        objectBuilder.advertiseMethod("event::m(mmm)", service, "events callback");
+        Object object = objectBuilder.object();
+        service.init(object);
+        System.out.println("Connecting to: " + address);
+        Future<Void> fut = session.connect(address);
         synchronized(fut) {
             fut.wait(1000);
         }
-
-        com.aldebaran.qimessaging.Object hello = null;
-        hello = session.service(io.nao.scanao.msg.Constants.MODULE_TEST());
-        String greeting = hello.<String>call("greet","Nicolas").get();
-        System.out.println(greeting);
-        } catch (Exception e){
-            e.printStackTrace();
+        System.out.println("Registering hello service");
+        session.registerService("hello", objectBuilder.object());
+        while(true) {
+            Thread.sleep(1);
         }
-
     }
 }
