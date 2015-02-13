@@ -15,15 +15,21 @@
         <developerConnection>scm:git:git@github.com:iPomme/scanao.git</developerConnection>
     </scm>
     <properties>
+        <encoding>UTF-8</encoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-        <encoding>UTF-8</encoding>
+        <osgi.version>4.2.0</osgi.version>
+        <karaf.version>2.3.0</karaf.version>
         <scala.version>2.11.4</scala.version>
         <scala.bin>2.11</scala.bin>
         <akka.version>2.3.8</akka.version>
         <akka.tracing.version>0.4</akka.tracing.version>
+        <netty.version>3.8.0.Final</netty.version>
         <protobuf.version>2.5.0</protobuf.version>
         <uncommons.version>1.2.3</uncommons.version>
+        <typesafe.config.version>1.2.1</typesafe.config.version>
+        <qimessaging.version>2.1.2.17-atom</qimessaging.version>
+        <logback.version>1.0.11</logback.version>
         <!-- Testing framework -->
         <junit.version>4.12</junit.version>
         <scalatest.artifiactId>scalatest</scalatest.artifiactId>
@@ -83,7 +89,22 @@
                 <artifactId>uncommons-maths</artifactId>
                 <version>${uncommons.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.aldebaran.osgi</groupId>
+                <artifactId>qimessaging</artifactId>
+                <version>${qimessaging.version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
             <!-- Test -->
             <dependency>
                 <groupId>junit</groupId>

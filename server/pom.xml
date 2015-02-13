@@ -1,126 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>io.nao</groupId>
-        <artifactId>parent</artifactId>
-        <version>2.1-SNAPSHOT</version>
-        <relativePath>../parent</relativePath>
-    </parent>
-
-    <artifactId>server</artifactId>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.nao</groupId>
+    <artifactId>parent</artifactId>
     <version>2.1-SNAPSHOT</version>
-    <name>NAO :: SERVER</name>
-    <description></description>
-    <inceptionYear>2013</inceptionYear>
-
-
-    <properties>
-
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.nao</groupId>
-            <artifactId>messages</artifactId>
-            <version>${pom.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.aldebaran</groupId>
-            <artifactId>qimessaging</artifactId>
-            <version>2.1.2.17-atom</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${scala.bin}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-remote_${scala.bin}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-kernel_${scala.bin}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_${scala.bin}</artifactId>
-        </dependency>
-
-        <!-- Log implementation -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.0.11</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.0.11</version>
-        </dependency>
-
-        <!-- Test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>${scalatest.artifiactId}_${scala.bin}</artifactId>
-        </dependency>
-
-        <!-- tracing -->
-        <dependency>
-            <groupId>com.github.levkhomich</groupId>
-            <artifactId>akka-tracing-core_${scala.bin}</artifactId>
-            <version>${akka.tracing.version}</version>
-        </dependency>
-
-    </dependencies>
-
-    <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
-        <plugins>
-            <!-- scala compilation -->
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-            </plugin>
-
-            <!-- tests execution -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-            </plugin>
-            <!-- create the assembly to deploy on the robot -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptor>src/assembly/bin.xml</descriptor>
-                    <finalName>scanao-server-${pom.version}.b${buildNumber}</finalName>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <relativePath>../parent</relativePath>
+  </parent>
+  <groupId>io.nao</groupId>
+  <artifactId>scanao-server</artifactId>
+  <version>2.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>scanao server</name>
+  <modules>
+    <module>core</module>
+    <module>assembly-features</module>
+    <module>assembly-dist</module>
+  </modules>
+  <dependencies>
+    <!--<dependency>-->
+    <!--<groupId>org.apache.felix</groupId>-->
+    <!--<artifactId>org.apache.felix.main.distribution</artifactId>-->
+    <!--<version>4.6.0</version>-->
+    <!--</dependency>-->
+    <!-- Depend on both the tar.gz and the zip, Pax Exam then does not have to download them separately -->
+  </dependencies>
 </project>

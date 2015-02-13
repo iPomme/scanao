@@ -8,8 +8,9 @@
   <name>scanao</name>
   <modules>
     <module>parent</module>
+    <module>messages</module>
+    <module>qimessage_osgi</module>
     <module>server</module>
     <module>client</module>
-    <module>messages</module>
   </modules>
 </project>
