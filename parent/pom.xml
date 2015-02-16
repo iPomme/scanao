@@ -19,7 +19,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <osgi.version>4.2.0</osgi.version>
-        <karaf.version>2.3.0</karaf.version>
+        <karaf.version>3.0.3</karaf.version>
         <scala.version>2.11.4</scala.version>
         <scala.bin>2.11</scala.bin>
         <akka.version>2.3.8</akka.version>
@@ -40,6 +40,16 @@
             <id>typesafe</id>
             <name>Typesafe Repository</name>
             <url>http://repo.typesafe.com/typesafe/releases/</url>
+        </repository>
+        <repository>
+            <id>maven</id>
+            <name>Maven Repository</name>
+            <url>http://central.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>atlassian</id>
+            <name>Atlassian Repository</name>
+            <url>https://maven.atlassian.com/content/groups/public/</url>
         </repository>
     </repositories>
     <dependencyManagement>
@@ -205,16 +215,16 @@
             </plugins>
         </pluginManagement>
         <plugins>
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>buildnumber-maven-plugin</artifactId>
-            <configuration>
-                <format>{0,number,000}</format>
-                <items>
-                    <item>buildNumber0</item>
-                </items>
-            </configuration>
-        </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <configuration>
+                    <format>{0,number,000}</format>
+                    <items>
+                        <item>buildNumber0</item>
+                    </items>
+                </configuration>
+            </plugin>
         </plugins>
         <finalName>${project.artifactId}-${project.version}-b${buildNumber}</finalName>
     </build>
