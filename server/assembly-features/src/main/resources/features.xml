@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="akka.features-${project.version}" xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+
+    <feature name='osgi-compendium' description='OSGi compendium feature' version='${osgi.version}' resolver='(obr)'>
+        <bundle start-level="10">mvn:org.osgi/org.osgi.compendium/${osgi.version}</bundle>
+    </feature>
+
+    <feature name='scala' description='Scala' version='${scala.version}' resolver='(obr)'>
+        <bundle start-level="15">mvn:org.scala-lang/scala-library/${scala.version}</bundle>
+    </feature>
+
+
+    <feature name='protobuf' description='Protobuf feature' version='${protobuf.version}' resolver='(obr)'>
+        <bundle start-level="20">mvn:com.google.protobuf/protobuf-java/${protobuf.version}</bundle>
+    </feature>
+
+    <feature name='netty' description='Netty feature' version='${netty.version}' resolver='(obr)'>
+        <bundle start-level="20">mvn:io.netty/netty/${netty.version}</bundle>
+    </feature>
+
+    <feature name='typesafe-config' description='Typesafe config' version='${typesafe.config.version}' resolver='(obr)'>
+        <feature version="[${scala.version},2.12.0)">scala</feature>
+        <bundle start-level="25">mvn:com.typesafe/config/${typesafe.config.version}</bundle>
+    </feature>
+
+    <feature name='akka' description='Akka' version='${akka.version}' resolver='(obr)'>
+        <feature version="[${scala.version},2.12.0)">scala</feature>
+        <feature version="[${netty.version},4.0.0)">netty</feature>
+        <feature version="[${protobuf.version},3.0.0)">protobuf</feature>
+        <feature version="[${typesafe.config.version},2.0.0)">typesafe-config</feature>
+        <bundle start-level="20">mvn:io.gatling.uncommons.maths/uncommons-maths/${uncommons.version}</bundle>
+        <!--<bundle start-level="30">mvn:com.typesafe.akka/akka-cluster_${scala.bin}/${akka.version}</bundle>-->
+        <bundle start-level="30">mvn:com.typesafe.akka/akka-actor_${scala.bin}/${akka.version}</bundle>
+        <bundle start-level="30">mvn:com.typesafe.akka/akka-osgi_${scala.bin}/${akka.version}</bundle>
+        <bundle start-level="30">mvn:com.typesafe.akka/akka-remote_${scala.bin}/${akka.version}</bundle>
+    </feature>
+
+    <feature name='core-server' description='Nao score server' version='${project.version}' resolver='(obr)'>
+        <feature version="[${akka.version},3.0.0)">akka</feature>
+        <bundle start-level="50">mvn:com.aldebaran.osgi/qimessaging/${qimessaging.version}</bundle>
+        <bundle start-level="50">mvn:io.nao/messages/${project.version}</bundle>
+        <bundle start-level="50">mvn:io.nao/core-server/${project.version}</bundle>
+    </feature>
+</features>

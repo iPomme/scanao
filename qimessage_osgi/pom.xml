@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+    <groupId>com.aldebaran.osgi</groupId>
+    <artifactId>qimessaging</artifactId>
+    <version>2.1.2.17-atom</version>
+
+    <name>NAO :: QIMessage OSGi</name>
+    <description>Osgi version of the JAVA/C++ bridge</description>
+    <packaging>bundle</packaging>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.aldebaran</groupId>
+            <artifactId>qimessaging</artifactId>
+            <version>2.1.2.17-atom</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <version>2.3.7</version>
+
+                <configuration>
+                    <instructions>
+                        <Import-Package>*</Import-Package>
+                        <Export-Package>com.aldebaran.qimessaging,*</Export-Package>
+                        <Native-Library>libboost_atomic-mt-1_55.so ; libboost_chrono-mt-1_55.so ;
+                            libboost_context-mt-1_55.so ; libboost_coroutine-mt-1_55.so ; libboost_date_time-mt-1_55.so
+                            ; libboost_filesystem-mt-1_55.so ; libboost_graph-mt-1_55.so ; libboost_iostreams-mt-1_55.so
+                            ; libboost_locale-mt-1_55.so ; libboost_log-mt-1_55.so ; libboost_log_setup-mt-1_55.so ;
+                            libboost_math_c99-mt-1_55.so ; libboost_math_c99f-mt-1_55.so ; libboost_math_c99l-mt-1_55.so
+                            ; libboost_math_tr1-mt-1_55.so ; libboost_math_tr1f-mt-1_55.so ;
+                            libboost_math_tr1l-mt-1_55.so ; libboost_prg_exec_monitor-mt-1_55.so ;
+                            libboost_program_options-mt-1_55.so ; libboost_python-mt-1_55.so ;
+                            libboost_random-mt-1_55.so ; libboost_regex-mt-1_55.so ; libboost_serialization-mt-1_55.so ;
+                            libboost_signals-mt-1_55.so ; libboost_system-mt-1_55.so ; libboost_thread-mt-1_55.so ;
+                            libboost_timer-mt-1_55.so ; libboost_unit_test_framework-mt-1_55.so ;
+                            libboost_wave-mt-1_55.so ; libboost_wserialization-mt-1_55.so ; libcrypto.so ; libqi.so ;
+                            libqic.so ; libqimessaging.so ; libqimessagingjni.so ; libqitype.so ; libssl.so ;
+                            osname=linux ; processor=atom
+                        </Native-Library>
+                    </instructions>
+                    <unpackBundle>true</unpackBundle>
+                </configuration>
+
+            </plugin>
+
+        </plugins>
+    </build>
+</project>
